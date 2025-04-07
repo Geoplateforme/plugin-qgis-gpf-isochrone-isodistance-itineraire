@@ -1,0 +1,26 @@
+[general]
+name=GPF - Isochrone Isodistance Itinéraire
+about=Utiliser le service de calcul d'isochrone, isodistance et d'itinéraire de la Géoplateforme
+category=Web
+hasProcessingProvider=True
+description=Intégration de l'API de la Géoplateforme de calcul d'isochrone, d'isodisance et d'itinéraires dans QGIS.
+icon=resources/images/default_icon.png
+tags=IGN,Géoplateforme,itinéraire,isochone,isodistance,routing,API,Valhalla,pgRouting,OSRM
+
+# credits and contact
+author=oslandia
+email=qgis@oslandia.com
+homepage=https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/
+repository=https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/
+tracker=https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/issues/
+
+# experimental flag
+deprecated=False
+experimental=True
+qgisMinimumVersion=3.40.0
+qgisMaximumVersion=3.99.0
+qt6_compatible=True
+
+# versioning
+version=0.1.0
+changelog=
