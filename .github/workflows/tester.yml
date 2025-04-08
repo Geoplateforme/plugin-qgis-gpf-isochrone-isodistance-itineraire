@@ -83,5 +83,5 @@ jobs:
 
       - name: Run Unit tests
         run: |
-          cd ~/${{ env.PROJECT_FOLDER }}
+          cd /home/root
           xvfb-run python3 -m pytest tests/qgis --junitxml=junit/test-results-qgis.xml --cov-report=xml:coverage-reports/coverage-qgis.xml
