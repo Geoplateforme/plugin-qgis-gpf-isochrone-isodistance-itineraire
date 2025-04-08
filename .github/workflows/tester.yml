@@ -72,12 +72,12 @@ jobs:
 
       - name: Install Python requirements
         run: |
-          apt install -y python3-pip python3-setuptools python3-venv python3-wheel
+          apt update && apt install -y python3-pip python3-setuptools python3-venv python3-wheel
           # Create a virtual environment
           cd ~
           python3 -m venv --system-site-packages .venv
           # Activate the virtual environment
-          source .venv/bin/activate
+          . .venv/bin/activate
           # Install the requirements
           python3 -m pip install -U -r requirements/testing.txt
 
