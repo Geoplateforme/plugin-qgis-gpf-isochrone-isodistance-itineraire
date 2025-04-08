@@ -58,7 +58,7 @@ jobs:
         PYTHONPATH: "/usr/share/qgis/python/plugins:/usr/share/qgis/python:."
         QT_QPA_PLATFORM: "offscreen"
         WITH_PYTHON_PEP: false
-      options: -v /tmp/.X11-unix:/tmp/.X11-unix -v ${{ github.workspace }}:~/${{ PROJECT_FOLDER }}
+      options: -v /tmp/.X11-unix:/tmp/.X11-unix -v ${{ github.workspace }}:~/${{ env.PROJECT_FOLDER }}
 
     steps:
       - name: Get source code
@@ -80,5 +80,5 @@ jobs:
 
       - name: Run Unit tests
         run: |
-          cd ~/${{ PROJECT_FOLDER }}
+          cd ~/${{ env.PROJECT_FOLDER }}
           xvfb-run python3 -m pytest tests/qgis --junitxml=junit/test-results-qgis.xml --cov-report=xml:coverage-reports/coverage-qgis.xml
