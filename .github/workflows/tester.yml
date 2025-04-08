@@ -58,7 +58,7 @@ jobs:
         PYTHONPATH: "/usr/share/qgis/python/plugins:/usr/share/qgis/python:."
         QT_QPA_PLATFORM: "offscreen"
         WITH_PYTHON_PEP: false
-      options: -v /tmp/.X11-unix:/tmp/.X11-unix -v ${{ github.workspace }}:/tests_directory
+      options: -v /tmp/.X11-unix:/tmp/.X11-unix -v ${{ github.workspace }}:~/${{ PROJECT_FOLDER }}
 
     steps:
       - name: Get source code
@@ -69,10 +69,16 @@ jobs:
 
       - name: Install Python requirements
         run: |
-          python3 -m pip install -U pip setuptools wheel
-          python3 -m pip install -U -r requirements/testing.txt
+          apt install -y python3-packaging python3-pip python3-pytest python3-setuptools python3-venv python3-wheel
+          # # Create a virtual environment
+          # cd ~
+          # python3 -m venv --system-site-packages .venv
+          # # Activate the virtual environment
+          # source .venv/bin/activate
+          # # Install the requirements
+          # python3 -m pip install -U -r requirements/testing.txt
 
       - name: Run Unit tests
         run: |
-          Xvfb :1 &
-          python3 -m pytest tests/qgis/
+          cd ~/${{ PROJECT_FOLDER }}
+          xvfb-run python3 -m pytest tests/qgis --junitxml=junit/test-results-qgis.xml --cov-report=xml:coverage-reports/coverage-qgis.xml
