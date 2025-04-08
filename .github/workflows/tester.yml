@@ -80,13 +80,12 @@ jobs:
           . .venv/bin/activate
           # Install the requirements
           python3 -m pip install -U -r requirements/testing.txt
-          ll
 
       - name: Run Unit tests
         run: |
-          cd ~
+          cd /home/root/
           # Activate the virtual environment
-          source .venv/bin/activate
+          . .venv/bin/activate
           # Run the tests
           # xvfb-run is used to run the tests in a virtual framebuffer
           # This is necessary because QGIS requires a display to run
