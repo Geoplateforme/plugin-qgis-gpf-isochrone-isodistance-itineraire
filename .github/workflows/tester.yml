@@ -72,16 +72,21 @@ jobs:
 
       - name: Install Python requirements
         run: |
-          apt install -y python3-packaging python3-pip python3-pytest python3-setuptools python3-venv python3-wheel
-          # # Create a virtual environment
-          # cd ~
-          # python3 -m venv --system-site-packages .venv
-          # # Activate the virtual environment
-          # source .venv/bin/activate
-          # # Install the requirements
-          # python3 -m pip install -U -r requirements/testing.txt
+          apt install -y python3-pip python3-setuptools python3-venv python3-wheel
+          # Create a virtual environment
+          cd ~
+          python3 -m venv --system-site-packages .venv
+          # Activate the virtual environment
+          source .venv/bin/activate
+          # Install the requirements
+          python3 -m pip install -U -r requirements/testing.txt
 
       - name: Run Unit tests
         run: |
-          cd /home/root
+          cd ~
+          # Activate the virtual environment
+          source .venv/bin/activate
+          # Run the tests
+          # xvfb-run is used to run the tests in a virtual framebuffer
+          # This is necessary because QGIS requires a display to run
           xvfb-run python3 -m pytest tests/qgis --junitxml=junit/test-results-qgis.xml --cov-report=xml:coverage-reports/coverage-qgis.xml
