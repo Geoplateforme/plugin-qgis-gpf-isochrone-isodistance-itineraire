@@ -21,7 +21,6 @@ env:
   PROJECT_FOLDER: "gpf_isochrone_isodistance_itineraire"
   PYTHON_VERSION: 3.9
 
-
 jobs:
   tests-unit:
     runs-on: ubuntu-latest
@@ -58,7 +57,7 @@ jobs:
         PYTHONPATH: "/usr/share/qgis/python/plugins:/usr/share/qgis/python:."
         QT_QPA_PLATFORM: "offscreen"
         WITH_PYTHON_PEP: false
-      options: -v /tmp/.X11-unix:/tmp/.X11-unix -v ${{ github.workspace }}:~/${{ env.PROJECT_FOLDER }}
+      options: -v /tmp/.X11-unix:/tmp/.X11-unix -v ${{ github.workspace }}:~/$PROJECT_FOLDER
 
     steps:
       - name: Get source code
