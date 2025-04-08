@@ -57,7 +57,11 @@ jobs:
         PYTHONPATH: "/usr/share/qgis/python/plugins:/usr/share/qgis/python:."
         QT_QPA_PLATFORM: "offscreen"
         WITH_PYTHON_PEP: false
-      options: -v /tmp/.X11-unix:/tmp/.X11-unix -v ${{ github.workspace }}:~/
+      volumes:
+        # Mount the X11 socket to allow GUI applications to run
+        - /tmp/.X11-unix:/tmp/.X11-unix
+        # Mount the workspace directory to the container
+        - ${{ github.workspace }}:/home/root/
 
     steps:
       - name: Get source code
