@@ -23,6 +23,9 @@ from gpf_isochrone_isodistance_itineraire.__about__ import (
     __uri_homepage__,
 )
 from gpf_isochrone_isodistance_itineraire.gui.dlg_settings import PlgOptionsFactory
+from gpf_isochrone_isodistance_itineraire.processing.provider import (
+    PluginGpfIsochroneIsodistanceItineraireProvider,
+)
 from gpf_isochrone_isodistance_itineraire.toolbelt import PlgLogger
 
 # ############################################################################
@@ -39,6 +42,7 @@ class GpfIsochroneIsodistanceItinerairePlugin:
         :type iface: QgsInterface
         """
         self.iface = iface
+        self.provider = None
         self.log = PlgLogger().log
 
         # translation
@@ -107,6 +111,10 @@ class GpfIsochroneIsodistanceItinerairePlugin:
             self.action_help_plugin_menu_documentation
         )
 
+        # -- Processing
+        self.provider = PluginGpfIsochroneIsodistanceItineraireProvider()
+        QgsApplication.processingRegistry().addProvider(self.provider)
+
     def tr(self, message: str) -> str:
         """Get the translation for a string using Qt translation API.
 
@@ -136,6 +144,9 @@ class GpfIsochroneIsodistanceItinerairePlugin:
         # remove actions
         del self.action_settings
         del self.action_help
+
+        if self.provider:
+            QgsApplication.processingRegistry().removeProvider(self.provider)
 
     def run(self):
         """Main process.
