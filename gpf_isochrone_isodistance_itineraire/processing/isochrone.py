@@ -265,15 +265,31 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
 
         request += self._additional_url_param
 
-        newReq = QgsBlockingNetworkRequest()
+        blocking_req = QgsBlockingNetworkRequest()
         qreq = QNetworkRequest(url=QUrl(request))
-        error_code = newReq.get(qreq, False, feedback)
+        error_code = blocking_req.get(qreq, forceRefresh=True, feedback=feedback)
 
-        # TODO : better management of error
+        # Add feedback in case of error
         if error_code != QgsBlockingNetworkRequest.ErrorCode.NoError:
+            if feedback:
+                err_msg = f"{blocking_req.errorMessage()}."
+                # get the API response error to log it
+                req_reply = blocking_req.reply()
+                if req_reply and b"application/json" in req_reply.rawHeader(
+                    b"Content-Type"
+                ):
+                    api_response_error = json.loads(str(req_reply.content(), "UTF8"))
+                    if (
+                        "error" in api_response_error
+                        and "message" in api_response_error["error"]
+                    ):
+                        err_msg += f"API error message: {api_response_error['error']['message']}"
+                feedback.reportError(
+                    self.tr("Isochrone request error : {}".format(err_msg))
+                )
             return []
 
-        data = json.loads(str(newReq.reply().content(), "UTF8"))
+        data = json.loads(str(blocking_req.reply().content(), "UTF8"))
 
         f = QgsFeature()
         f.setGeometry(QgsGeometry.fromWkt(data["geometry"]))
