@@ -18,6 +18,6 @@ def classFactory(iface):
     :param iface: A QGIS interface instance.
     :type iface: QgsInterface
     """
-    from .plugin_main import PluginGpfIsochroneIsodistanceItinerairePlugin
+    from .plugin_main import GpfIsochroneIsodistanceItinerairePlugin
 
-    return PluginGpfIsochroneIsodistanceItinerairePlugin(iface)
+    return GpfIsochroneIsodistanceItinerairePlugin(iface)

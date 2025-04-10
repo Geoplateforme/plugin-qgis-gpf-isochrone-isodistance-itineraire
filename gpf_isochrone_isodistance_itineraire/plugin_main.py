@@ -30,7 +30,7 @@ from gpf_isochrone_isodistance_itineraire.toolbelt import PlgLogger
 # ##################################
 
 
-class PluginGpfIsochroneIsodistanceItinerairePlugin:
+class GpfIsochroneIsodistanceItinerairePlugin:
     def __init__(self, iface: QgisInterface):
         """Constructor.
 
