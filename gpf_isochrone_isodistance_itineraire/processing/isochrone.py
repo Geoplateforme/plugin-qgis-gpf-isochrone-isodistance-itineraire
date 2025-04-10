@@ -140,13 +140,12 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
         self.addParameter(
             QgsProcessingParameterString(
                 name=self.ID_RESOURCE,
-                description=self.tr("ID ressource"),
+                description=self.tr("Identifiant ressource"),
             )
         )
         self.addParameter(
             QgsProcessingParameterString(
-                name=self.PROFILE,
-                description=self.tr("Profile"),
+                name=self.PROFILE, description=self.tr("Profil")
             )
         )
         self.addParameter(
@@ -163,15 +162,15 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
         self.addParameter(
             QgsProcessingParameterNumber(
                 name=self.MAX_DURATION,
-                description=self.tr("Maximum duration (seconds)"),
-                defaultValue=10,
+                description=self.tr("Durée maximale (secondes)"),
+                defaultValue=3600.0,
                 type=QgsProcessingParameterNumber.Type.Double,
             )
         )
 
         param = QgsProcessingParameterString(
             name=self.ADDITIONAL_URL_PARAM,
-            description=self.tr("Additionnal parameters for request"),
+            description=self.tr("Paramètres additionnels pour la requête"),
             optional=True,
         )
 
@@ -285,7 +284,11 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
                     ):
                         err_msg += f"API error message: {api_response_error['error']['message']}"
                 feedback.reportError(
-                    self.tr("Isochrone request error : {}".format(err_msg))
+                    self.tr(
+                        "Erreur lors de la requête pour calcul d'isochrone : {}".format(
+                            err_msg
+                        )
+                    )
                 )
             return []
 
