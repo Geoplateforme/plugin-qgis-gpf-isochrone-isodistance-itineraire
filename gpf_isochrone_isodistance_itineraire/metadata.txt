@@ -10,7 +10,7 @@ tags=IGN,Géoplateforme,itinéraire,isochone,isodistance,routing,API,Valhalla,pg
 # credits and contact
 author=oslandia
 email=qgis@oslandia.com
-homepage=https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/
+homepage=https://geoplateforme.github.io/plugin-qgis-gpf-isochrone-isodistance-itineraire/
 repository=https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/
 tracker=https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/issues/
 
