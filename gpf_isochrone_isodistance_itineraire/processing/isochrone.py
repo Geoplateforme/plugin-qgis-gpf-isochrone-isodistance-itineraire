@@ -22,8 +22,7 @@ from qgis.core import (
     QgsProcessingParameterNumber,
     QgsProcessingParameterString,
 )
-from qgis.PyQt.Qt import QUrl
-from qgis.PyQt.QtCore import QCoreApplication
+from qgis.PyQt.QtCore import QCoreApplication, QUrl
 from qgis.PyQt.QtNetwork import QNetworkRequest
 
 
