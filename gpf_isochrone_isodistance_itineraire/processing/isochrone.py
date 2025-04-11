@@ -23,7 +23,7 @@ from qgis.core import (
     QgsProcessingParameterExpression,
     QgsProcessingParameterString,
 )
-from qgis.PyQt.QtCore import QCoreApplication, QUrl
+from qgis.PyQt.QtCore import QCoreApplication, QUrl, QVariant
 from qgis.PyQt.QtNetwork import QNetworkRequest
 
 # project
@@ -187,6 +187,7 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
         param = QgsProcessingParameterExpression(
             name=self.ADDITIONAL_URL_PARAM,
             description=self.tr("Paramètres additionnels pour la requête"),
+            parentLayerParameterName=self.inputParameterName(),
             optional=True,
         )
 
@@ -226,7 +227,7 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
         self._max_duration = self.parameterAsExpression(
             parameters, self.MAX_DURATION, context
         )
-        self._additional_url_param = self.parameterAsExpression(
+        self._additional_url_param = self.parameterAsString(
             parameters, self.ADDITIONAL_URL_PARAM, context
         )
 
@@ -538,7 +539,15 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
         request += "&geometryFormat=wkt"
         request += f"&crs={authid}"
 
-        request += self._additional_url_param
+        # Check if additional param are available
+        additional_url_param = self._evaluateExpression(
+            expression_ctx, self._additional_url_param
+        )
+        if not QVariant(additional_url_param).isNull():
+            request += additional_url_param
+
+        if feedback:
+            feedback.pushCommandInfo(f"request : {request}")
 
         blocking_req = QgsBlockingNetworkRequest()
         qreq = QNetworkRequest(url=QUrl(request))
@@ -580,6 +589,7 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
         f.setAttribute("profile", profile)
         f.setAttribute("direction", direction)
         f.setAttribute("max_duration", max_duration)
+        f.setAttribute("additional_url_param", additional_url_param)
 
         return [f]
 
@@ -617,6 +627,7 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
         result.append(QgsField("profile"))
         result.append(QgsField("direction"))
         result.append(QgsField("max_duration"))
+        result.append(QgsField("additional_url_param"))
         return result
 
     def outputCrs(
