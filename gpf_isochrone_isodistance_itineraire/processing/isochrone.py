@@ -299,7 +299,8 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
         f.setAttribute("request", request)
         f.setAttribute("x", geom.x())
         f.setAttribute("y", geom.y())
-        f.setAttribute("profile", self._id_resource)
+        f.setAttribute("id_resource", self._id_resource)
+        f.setAttribute("profile", self._profile)
         f.setAttribute("direction", self._direction)
         f.setAttribute("max_duration", self._max_duration)
 
@@ -335,6 +336,7 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
         result.append(QgsField("x"))
         result.append(QgsField("y"))
         result.append(QgsField("request"))
+        result.append(QgsField("id_resource"))
         result.append(QgsField("profile"))
         result.append(QgsField("direction"))
         result.append(QgsField("max_duration"))
