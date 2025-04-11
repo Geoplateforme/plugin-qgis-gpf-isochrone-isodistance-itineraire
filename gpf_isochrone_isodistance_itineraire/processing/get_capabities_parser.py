@@ -120,6 +120,34 @@ def get_resource_operation_parameters(
     return None
 
 
+def get_resource_operation_parameters_values(
+    parameter: str, id_resource: str, operation: str, url_service: Optional[str] = None
+) -> List[str]:
+    """Get resource operation parameter values list
+
+    :param parameter: parameter name
+    :type parameter: str
+    :param id_resource: id resource
+    :type id_resource: str
+    :param operation: operation
+    :type operation: str
+    :param url_service: url for service, defaults to None (plugin settings param is used)
+    :type url_service: Optional[str], optional
+    :return: list of operation parameters
+    :rtype: Optional[List[Any]]
+    """
+    params = get_resource_operation_parameters(
+        id_resource=id_resource, operation=operation, url_service=url_service
+    )
+    if not params:
+        return []
+
+    for param in params:
+        if param["id"] == parameter:
+            return param["values"]
+    return []
+
+
 def get_resource_profiles(
     id_resource: str, operation: str, url_service: Optional[str] = None
 ) -> List[str]:
@@ -134,16 +162,12 @@ def get_resource_profiles(
     :return: list of profiles for a resource
     :rtype: List[str]
     """
-    params = get_resource_operation_parameters(
-        id_resource=id_resource, operation=operation, url_service=url_service
+    return get_resource_operation_parameters_values(
+        parameter="profile",
+        id_resource=id_resource,
+        operation=operation,
+        url_service=url_service,
     )
-    if not params:
-        return []
-
-    for param in params:
-        if param["id"] == "profile":
-            return param["values"]
-    return []
 
 
 def get_resource_direction(
@@ -158,16 +182,12 @@ def get_resource_direction(
     :return: list of profiles for a resource
     :rtype: List[str]
     """
-    params = get_resource_operation_parameters(
-        id_resource=id_resource, operation=ISOCHRONE_OPERATION, url_service=url_service
+    return get_resource_operation_parameters_values(
+        parameter="direction",
+        id_resource=id_resource,
+        operation=ISOCHRONE_OPERATION,
+        url_service=url_service,
     )
-    if not params:
-        return []
-
-    for param in params:
-        if param["id"] == "direction":
-            return param["values"]
-    return []
 
 
 @lru_cache
