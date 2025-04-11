@@ -104,6 +104,9 @@ class ConfigOptionsPage(FORM_CLASS, QgsOptionsPageWidget):
         settings.debug_mode = self.opt_debug.isChecked()
         settings.version = __version__
 
+        # service
+        settings.url_service = self.lne_url_service.text()
+
         # dump new settings into QgsSettings
         self.plg_settings.save_from_object(settings)
 
@@ -120,6 +123,9 @@ class ConfigOptionsPage(FORM_CLASS, QgsOptionsPageWidget):
         # global
         self.opt_debug.setChecked(settings.debug_mode)
         self.lbl_version_saved_value.setText(settings.version)
+
+        # service
+        self.lne_url_service.setText(settings.url_service)
 
     def reset_settings(self):
         """Reset settings to default values (set in preferences.py module)."""
