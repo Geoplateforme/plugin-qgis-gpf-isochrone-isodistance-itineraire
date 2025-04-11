@@ -32,6 +32,7 @@ from gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser impor
     get_available_resources,
     get_resource_cost_type,
     get_resource_direction,
+    get_resource_param_bbox,
     get_resource_profiles,
     isochrone_available_for_resource,
     isochrone_available_for_service,
@@ -396,6 +397,54 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
             return False
         return True
 
+    def _check_point(
+        self,
+        geom: QgsPointXY,
+        id_resource: str,
+        url_service: str,
+        feedback: Optional[QgsProcessingFeedback],
+    ) -> bool:
+        """Check if point is inside resource bbox
+
+        :param profile: profile
+        :type profile: str
+        :param id_resource: id resource
+        :type id_resource: str
+        :param url_service: url service
+        :type url_service: str
+        :param feedback: processing feedback
+        :type feedback: Optional[QgsProcessingFeedback]
+        :return: True if profile is valid, False otherwise
+        :rtype: bool
+        """
+        bbox = get_resource_param_bbox(
+            parameter="point",
+            id_resource=id_resource,
+            operation=ISOCHRONE_OPERATION,
+            url_service=url_service,
+        )
+        if not bbox:
+            if feedback:
+                feedback.pushWarning(
+                    self.tr(
+                        "Impossible de définir la bounding box pour la ressource {}".format(
+                            id_resource
+                        )
+                    )
+                )
+        else:
+            if not bbox.contains(geom):
+                if feedback:
+                    feedback.reportError(
+                        self.tr(
+                            "Point {} non contenu dans la bounding box de la ressource {} : {}".format(
+                                geom.asWkt(), id_resource, bbox
+                            )
+                        )
+                    )
+                return False
+        return True
+
     def _evaluateExpression(
         self, expression_ctx: QgsExpressionContext, expression_str: str
     ) -> Any:
@@ -447,7 +496,6 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
         expression_ctx = context.expressionContext()
         expression_ctx.setFeature(feature)
 
-        # TODO : get bounding box of GetCapabilites and check x/y
         request = f"{self._url_service}/isochrone?point={geom.x()},{geom.y()}"
 
         # Check resource
@@ -455,6 +503,10 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
         if not self._check_resource(id_resource, self._url_service, feedback):
             return []
         request += f"&resource={id_resource}"
+
+        # Check point geom
+        if not self._check_point(geom, id_resource, self._url_service, feedback):
+            return []
 
         # Check profile
         profile = self._evaluateExpression(expression_ctx, self._profile)
