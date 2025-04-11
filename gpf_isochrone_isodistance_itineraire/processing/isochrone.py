@@ -27,8 +27,10 @@ from qgis.PyQt.QtCore import QCoreApplication, QUrl
 from qgis.PyQt.QtNetwork import QNetworkRequest
 
 # project
+from gpf_isochrone_isodistance_itineraire.constants import ISOCHRONE_OPERATION
 from gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser import (
     get_available_resources,
+    get_resource_profiles,
     isochrone_available_for_resource,
     isochrone_available_for_service,
 )
@@ -286,6 +288,42 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
 
         return True
 
+    def _check_profile(
+        self,
+        profile: str,
+        id_resource: str,
+        url_service: str,
+        feedback: Optional[QgsProcessingFeedback],
+    ) -> bool:
+        """Check if profile is valid for ressource
+
+        :param profile: profile
+        :type profile: str
+        :param id_resource: id resource
+        :type id_resource: str
+        :param url_service: url service
+        :type url_service: str
+        :param feedback: processing feedback
+        :type feedback: Optional[QgsProcessingFeedback]
+        :return: True if profile is valid, False otherwise
+        :rtype: bool
+        """
+        if profile not in get_resource_profiles(
+            id_resource=id_resource,
+            operation=ISOCHRONE_OPERATION,
+            url_service=url_service,
+        ):
+            if feedback:
+                feedback.reportError(
+                    self.tr(
+                        "La resource {} ne contient pas le profil : {}".format(
+                            id_resource, profile
+                        )
+                    )
+                )
+            return False
+        return True
+
     def _evaluateExpression(
         self, expression_ctx: QgsExpressionContext, expression_str: str
     ) -> Any:
@@ -346,12 +384,17 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
             return []
         request += f"&resource={id_resource}"
 
+        # Check profile
+        profile = self._evaluateExpression(expression_ctx, self._profile)
+        if not self._check_profile(profile, id_resource, self._url_service, feedback):
+            return []
+        request += f"&profile={profile}"
+
         # TODO check url getCapabilities to check values
         max_duration = self._evaluateExpression(expression_ctx, self._max_duration)
         request += f"&costValue={max_duration}"
         request += "&costType=time&timeUnit=second"
-        profile = self._evaluateExpression(expression_ctx, self._profile)
-        request += f"&profile={profile}"
+
         direction = self._evaluateExpression(expression_ctx, self._direction)
         request += f"&direction={direction}"
         request += "&geometryFormat=wkt"
