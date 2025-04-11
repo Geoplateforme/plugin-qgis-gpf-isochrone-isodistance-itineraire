@@ -146,6 +146,30 @@ def get_resource_profiles(
     return []
 
 
+def get_resource_direction(
+    id_resource: str, url_service: Optional[str] = None
+) -> List[str]:
+    """Get list of direction for an isochrone operation
+
+    :param id_resource: id resource
+    :type id_resource: str
+    :param url_service: url for service, defaults to None (plugin settings param is used)
+    :type url_service: Optional[str], optional
+    :return: list of profiles for a resource
+    :rtype: List[str]
+    """
+    params = get_resource_operation_parameters(
+        id_resource=id_resource, operation=ISOCHRONE_OPERATION, url_service=url_service
+    )
+    if not params:
+        return []
+
+    for param in params:
+        if param["id"] == "direction":
+            return param["values"]
+    return []
+
+
 @lru_cache
 def download_getcapabilities(
     url_service: Optional[str] = None,

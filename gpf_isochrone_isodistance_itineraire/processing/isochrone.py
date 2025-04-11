@@ -30,6 +30,7 @@ from qgis.PyQt.QtNetwork import QNetworkRequest
 from gpf_isochrone_isodistance_itineraire.constants import ISOCHRONE_OPERATION
 from gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser import (
     get_available_resources,
+    get_resource_direction,
     get_resource_profiles,
     isochrone_available_for_resource,
     isochrone_available_for_service,
@@ -324,6 +325,41 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
             return False
         return True
 
+    def _check_direction(
+        self,
+        direction: str,
+        id_resource: str,
+        url_service: str,
+        feedback: Optional[QgsProcessingFeedback],
+    ) -> bool:
+        """Check if profile is valid for ressource
+
+        :param profile: profile
+        :type profile: str
+        :param id_resource: id resource
+        :type id_resource: str
+        :param url_service: url service
+        :type url_service: str
+        :param feedback: processing feedback
+        :type feedback: Optional[QgsProcessingFeedback]
+        :return: True if profile is valid, False otherwise
+        :rtype: bool
+        """
+        if direction not in get_resource_direction(
+            id_resource=id_resource,
+            url_service=url_service,
+        ):
+            if feedback:
+                feedback.reportError(
+                    self.tr(
+                        "La resource {} ne contient pas la direction : {}".format(
+                            id_resource, direction
+                        )
+                    )
+                )
+            return False
+        return True
+
     def _evaluateExpression(
         self, expression_ctx: QgsExpressionContext, expression_str: str
     ) -> Any:
@@ -390,13 +426,18 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
             return []
         request += f"&profile={profile}"
 
+        # Check direction
+        direction = self._evaluateExpression(expression_ctx, self._direction)
+        if not self._check_direction(
+            direction, id_resource, self._url_service, feedback
+        ):
+            return []
+        request += f"&direction={direction}"
+
         # TODO check url getCapabilities to check values
         max_duration = self._evaluateExpression(expression_ctx, self._max_duration)
         request += f"&costValue={max_duration}"
         request += "&costType=time&timeUnit=second"
-
-        direction = self._evaluateExpression(expression_ctx, self._direction)
-        request += f"&direction={direction}"
         request += "&geometryFormat=wkt"
         request += f"&crs={authid}"
 
