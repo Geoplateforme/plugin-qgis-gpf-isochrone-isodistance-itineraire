@@ -190,6 +190,26 @@ def get_resource_direction(
     )
 
 
+def get_resource_cost_type(
+    id_resource: str, url_service: Optional[str] = None
+) -> List[str]:
+    """Get list of costType for an isochrone operation
+
+    :param id_resource: id resource
+    :type id_resource: str
+    :param url_service: url for service, defaults to None (plugin settings param is used)
+    :type url_service: Optional[str], optional
+    :return: list of profiles for a resource
+    :rtype: List[str]
+    """
+    return get_resource_operation_parameters_values(
+        parameter="costType",
+        id_resource=id_resource,
+        operation=ISOCHRONE_OPERATION,
+        url_service=url_service,
+    )
+
+
 @lru_cache
 def download_getcapabilities(
     url_service: Optional[str] = None,
