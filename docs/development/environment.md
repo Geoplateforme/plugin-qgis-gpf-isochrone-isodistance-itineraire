@@ -39,11 +39,11 @@ It's recommended to create a dedicated QGIS profile for the development of the p
 
     ```sh
     # Linux
-    qgis --profile plg_qgis_plugin_templater_test_github
+    qgis --profile plg_gpf_isochrone_distance
     # Windows - OSGeo4W Shell
-    qgis-ltr --profile plg_qgis_plugin_templater_test_github
+    qgis-ltr --profile plg_gpf_isochrone_distance
     # Windows - PowerShell opened in the QGIS installation directory
-    PS C:\Program Files\QGIS 3.40.4\LTR\bin> .\qgis-ltr-bin.exe --profile plg_qgis_plugin_templater_test_github
+    PS C:\Program Files\QGIS 3.40.4\LTR\bin> .\qgis-ltr-bin.exe --profile plg_gpf_isochrone_distance
     ```
 
 1. Then, set the `QGIS_PLUGINPATH` environment variable to the path of the plugin in profile preferences:
