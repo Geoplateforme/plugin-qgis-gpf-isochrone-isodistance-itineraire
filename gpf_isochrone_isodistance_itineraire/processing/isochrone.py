@@ -31,6 +31,8 @@ from gpf_isochrone_isodistance_itineraire.constants import ISOCHRONE_OPERATION
 from gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser import (
     get_available_resources,
     get_resource_cost_type,
+    get_resource_crs,
+    get_resource_default_crs,
     get_resource_direction,
     get_resource_param_bbox,
     get_resource_profiles,
@@ -464,6 +466,65 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
             result = expression_str
         return result
 
+    def _define_request_crs(
+        self,
+        input_crs: QgsCoordinateReferenceSystem,
+        id_resource: str,
+        url_service: str,
+        feedback: Optional[QgsProcessingFeedback],
+    ) -> Optional[QgsCoordinateReferenceSystem]:
+        """Define request CRS by checking supported CRS for resource.
+        If CRS incompatible return default CRS or first available CRS for resource
+        If no CRS defined in resource None value returned
+
+        :param input_crs: input CRS
+        :type input_crs: QgsCoordinateReferenceSystem
+        :param id_resource: id resource
+        :type id_resource: str
+        :param url_service: url service
+        :type url_service: str
+        :param feedback: processing feedback
+        :type feedback: Optional[QgsProcessingFeedback]
+        :return: request CRS, None if no CRS available for resource
+        :rtype: Optional[QgsCoordinateReferenceSystem]
+        """
+        # Check if input crs is compatible
+        supported_crs = get_resource_crs(
+            id_resource=id_resource,
+            operation=ISOCHRONE_OPERATION,
+            url_service=self._url_service,
+        )
+        if len(supported_crs) == 0:
+            if feedback:
+                feedback.reportError(
+                    self.tr(
+                        "La resource ne supporte aucun CRS : {}".format(id_resource)
+                    )
+                )
+            return None
+
+        request_crs = input_crs
+        if input_crs.authid() not in supported_crs:
+            # If CRS incompatible, use default or first available CRS
+            if default_auth_id := get_resource_default_crs(
+                id_resource=id_resource,
+                operation=ISOCHRONE_OPERATION,
+                url_service=url_service,
+            ):
+                request_crs = QgsCoordinateReferenceSystem(default_auth_id)
+            else:
+                request_crs = QgsCoordinateReferenceSystem(supported_crs[0])
+
+            if feedback:
+                feedback.pushWarning(
+                    self.tr(
+                        "Le CRS en entrée n'est pas compatible avec la ressource : {}. Utilisation du CRS {} pour le calcul".format(
+                            id_resource, request_crs.authid()
+                        )
+                    )
+                )
+        return request_crs
+
     def processFeature(
         self,
         feature: QgsFeature,
@@ -482,27 +543,41 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
         :rtype: List[QgsFeature]
         """
 
-        # TODO : for now only use EPSG:4326 crs
         geometry = feature.geometry()
-        output_crs = QgsCoordinateReferenceSystem("EPSG:4326")
-        authid: str = output_crs.authid()
-        transform = QgsCoordinateTransform(
-            self._input_crs,
-            output_crs,
-            context.transformContext(),
-        )
-        geometry.transform(transform)
-        geom: QgsPointXY = geometry.asPoint()
 
         expression_ctx = context.expressionContext()
         expression_ctx.setFeature(feature)
-
-        request = f"{self._url_service}/isochrone?point={geom.x()},{geom.y()}"
 
         # Check resource
         id_resource = self._evaluateExpression(expression_ctx, self._id_resource)
         if not self._check_resource(id_resource, self._url_service, feedback):
             return []
+
+        # Define request crs
+        request_crs = self._define_request_crs(
+            input_crs=self._input_crs,
+            id_resource=id_resource,
+            url_service=self._url_service,
+            feedback=feedback,
+        )
+        if request_crs is None:
+            return []
+
+        # Check if geometry must be converted
+        transform = None
+        if self._input_crs != request_crs:
+            transform = QgsCoordinateTransform(
+                self._input_crs,
+                request_crs,
+                context.transformContext(),
+            )
+            geometry.transform(transform)
+
+        # Create request
+        geom: QgsPointXY = geometry.asPoint()
+        request = f"{self._url_service}/isochrone?point={geom.x()},{geom.y()}"
+
+        # Add resource
         request += f"&resource={id_resource}"
 
         # Check point geom
@@ -536,8 +611,10 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
         # TODO check url getCapabilities to check values
         max_duration = self._evaluateExpression(expression_ctx, self._max_duration)
         request += f"&costValue={max_duration}"
+
         request += "&geometryFormat=wkt"
-        request += f"&crs={authid}"
+
+        request += f"&crs={request_crs.authid()}"
 
         # Check if additional param are available
         additional_url_param = self._evaluateExpression(
@@ -579,8 +656,13 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
 
         data = json.loads(str(blocking_req.reply().content(), "UTF8"))
 
+        output_geom = QgsGeometry.fromWkt(data["geometry"])
+        # Apply inverse transformation if input data was converted
+        if transform:
+            output_geom.transform(transform, direction=Qgis.TransformDirection.Reverse)
+
         f = QgsFeature()
-        f.setGeometry(QgsGeometry.fromWkt(data["geometry"]))
+        f.setGeometry(output_geom)
         f.setFields(self.outputFields(feature.fields()))
         f.setAttribute("request", request)
         f.setAttribute("x", geom.x())
@@ -637,12 +719,11 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
 
         :param inputCrs: input crs
         :type inputCrs: QgsCoordinateReferenceSystem
-        :return: output crs (alway EPSG:4326)
+        :return: output crs (alway input crs, conversion done after request if needed)
         :rtype: QgsCoordinateReferenceSystem
         """
         self._input_crs = inputCrs
-        # TODO : get usable crs for resources from GetCapabities, for now always use EPSG:4326
-        return QgsCoordinateReferenceSystem("EPSG:4326")
+        return self._input_crs
 
     def inputLayerTypes(self) -> List[int]:
         """Returns the valid input layer types for the source layer for this algorithm.
