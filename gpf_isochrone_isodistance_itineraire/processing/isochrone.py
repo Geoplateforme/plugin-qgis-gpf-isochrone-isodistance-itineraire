@@ -26,6 +26,9 @@ from qgis.core import (
 from qgis.PyQt.QtCore import QCoreApplication, QUrl
 from qgis.PyQt.QtNetwork import QNetworkRequest
 
+# project
+from gpf_isochrone_isodistance_itineraire.toolbelt.preferences import PlgOptionsManager
+
 
 class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
     URL_SERVICE = "URL_SERVICE"
@@ -129,12 +132,13 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
         :param configuration: configuration, defaults to {}
         :type configuration: Dict[str, Any], optional
         """
+        plg_settings = PlgOptionsManager().get_plg_settings()
 
         self.addParameter(
             QgsProcessingParameterString(
                 name=self.URL_SERVICE,
                 description=self.tr("Url service"),
-                defaultValue="https://data.geopf.fr/navigation/",
+                defaultValue=plg_settings.url_service,
             )
         )
         self.addParameter(
