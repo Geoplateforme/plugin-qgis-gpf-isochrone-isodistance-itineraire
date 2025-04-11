@@ -8,6 +8,8 @@ from qgis.core import (
     QgsBlockingNetworkRequest,
     QgsCoordinateReferenceSystem,
     QgsCoordinateTransform,
+    QgsExpression,
+    QgsExpressionContext,
     QgsFeature,
     QgsField,
     QgsFields,
@@ -18,8 +20,7 @@ from qgis.core import (
     QgsProcessingFeatureBasedAlgorithm,
     QgsProcessingFeedback,
     QgsProcessingParameterDefinition,
-    QgsProcessingParameterEnum,
-    QgsProcessingParameterNumber,
+    QgsProcessingParameterExpression,
     QgsProcessingParameterString,
 )
 from qgis.PyQt.QtCore import QCoreApplication, QUrl
@@ -43,7 +44,7 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
         self._id_resource = ""
         self._profile = ""
         self._direction = ""
-        self._max_duration = 0.0
+        self._max_duration = ""
         self._additional_url_param = ""
         self._input_crs = QgsCoordinateReferenceSystem()
 
@@ -137,37 +138,39 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
             )
         )
         self.addParameter(
-            QgsProcessingParameterString(
+            QgsProcessingParameterExpression(
                 name=self.ID_RESOURCE,
                 description=self.tr("Identifiant ressource"),
+                parentLayerParameterName=self.inputParameterName(),
             )
         )
         self.addParameter(
-            QgsProcessingParameterString(
-                name=self.PROFILE, description=self.tr("Profil")
+            QgsProcessingParameterExpression(
+                name=self.PROFILE,
+                description=self.tr("Profil"),
+                parentLayerParameterName=self.inputParameterName(),
             )
         )
         self.addParameter(
-            QgsProcessingParameterEnum(
-                self.DIRECTION,
-                self.tr("Direction"),
-                options=self.DIRECTION_ENUM,
+            QgsProcessingParameterExpression(
+                name=self.DIRECTION,
+                description=self.tr("Direction"),
+                parentLayerParameterName=self.inputParameterName(),
                 defaultValue=self.DIRECTION_ENUM[0],
-                usesStaticStrings=True,
                 optional=False,
             )
         )
 
         self.addParameter(
-            QgsProcessingParameterNumber(
+            QgsProcessingParameterExpression(
                 name=self.MAX_DURATION,
                 description=self.tr("Durée maximale (secondes)"),
+                parentLayerParameterName=self.inputParameterName(),
                 defaultValue=3600.0,
-                type=QgsProcessingParameterNumber.Type.Double,
             )
         )
 
-        param = QgsProcessingParameterString(
+        param = QgsProcessingParameterExpression(
             name=self.ADDITIONAL_URL_PARAM,
             description=self.tr("Paramètres additionnels pour la requête"),
             optional=True,
@@ -199,28 +202,46 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
         self._id_resource = ""
         self._profile = ""
         self._direction = ""
-        self._max_duration = 0.0
+        self._max_duration = "0.0"
         self._additional_url_param = ""
 
         self._url_service = self.parameterAsString(
             parameters, self.URL_SERVICE, context
         )
-        self._id_resource = self.parameterAsString(
+        self._id_resource = self.parameterAsExpression(
             parameters, self.ID_RESOURCE, context
         )
-        self._profile = self.parameterAsString(parameters, self.PROFILE, context)
+        self._profile = self.parameterAsExpression(parameters, self.PROFILE, context)
 
-        self._direction = self.parameterAsString(parameters, self.DIRECTION, context)
+        self._direction = self.parameterAsExpression(
+            parameters, self.DIRECTION, context
+        )
 
-        self._max_duration = self.parameterAsDouble(
+        self._max_duration = self.parameterAsExpression(
             parameters, self.MAX_DURATION, context
         )
-        self._additional_url_param = self.parameterAsString(
+        self._additional_url_param = self.parameterAsExpression(
             parameters, self.ADDITIONAL_URL_PARAM, context
         )
-
-        # TODO check url getCapabilities to return false if url invalid
         return True
+
+    def _evaluateExpression(
+        self, expression_ctx: QgsExpressionContext, expression_str: str
+    ) -> Any:
+        """Evaluate expression from context. If there is an evaluation error return expression string.
+
+        :param expression_ctx: expression context
+        :type expression_ctx: QgsExpressionContext
+        :param expression_str: expression string
+        :type expression_str: str
+        :return: evaluated value
+        :rtype: Any
+        """
+        expression = QgsExpression(expression_str)
+        result = expression.evaluate(expression_ctx)
+        if expression.hasEvalError():
+            result = expression_str
+        return result
 
     def processFeature(
         self,
@@ -252,12 +273,22 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
         geometry.transform(transform)
         geom: QgsPointXY = geometry.asPoint()
 
+        expression_ctx = context.expressionContext()
+        expression_ctx.setFeature(feature)
+
         # TODO : get bounding box of GetCapabilites and check x/y
         request = f"{self._url_service}/isochrone?point={geom.x()},{geom.y()}"
-        request += f"&resource={self._id_resource}"
-        request += f"&costValue={self._max_duration}&costType=time&timeUnit=second"
-        request += f"&profile={self._profile}"
-        request += f"&direction={self._direction}"
+
+        # TODO check url getCapabilities to check values
+        id_resource = self._evaluateExpression(expression_ctx, self._id_resource)
+        request += f"&resource={id_resource}"
+        max_duration = self._evaluateExpression(expression_ctx, self._max_duration)
+        request += f"&costValue={max_duration}"
+        request += "&costType=time&timeUnit=second"
+        profile = self._evaluateExpression(expression_ctx, self._profile)
+        request += f"&profile={profile}"
+        direction = self._evaluateExpression(expression_ctx, self._direction)
+        request += f"&direction={direction}"
         request += "&geometryFormat=wkt"
         request += f"&crs={authid}"
 
@@ -299,10 +330,10 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
         f.setAttribute("request", request)
         f.setAttribute("x", geom.x())
         f.setAttribute("y", geom.y())
-        f.setAttribute("id_resource", self._id_resource)
-        f.setAttribute("profile", self._profile)
-        f.setAttribute("direction", self._direction)
-        f.setAttribute("max_duration", self._max_duration)
+        f.setAttribute("id_resource", id_resource)
+        f.setAttribute("profile", profile)
+        f.setAttribute("direction", direction)
+        f.setAttribute("max_duration", max_duration)
 
         return [f]
 
