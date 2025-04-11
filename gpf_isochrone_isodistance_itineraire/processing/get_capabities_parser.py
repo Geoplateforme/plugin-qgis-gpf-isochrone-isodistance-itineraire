@@ -170,6 +170,28 @@ def get_resource_profiles(
     )
 
 
+def get_resource_crs(
+    id_resource: str, operation: str, url_service: Optional[str] = None
+) -> List[str]:
+    """Get list of resource crs for an operation
+
+    :param id_resource: id resource
+    :type id_resource: str
+    :param operation: operation
+    :type operation: str
+    :param url_service: url for service, defaults to None (plugin settings param is used)
+    :type url_service: Optional[str], optional
+    :return: list of crs for a resource
+    :rtype: List[str]
+    """
+    return get_resource_operation_parameters_values(
+        parameter="crs",
+        id_resource=id_resource,
+        operation=operation,
+        url_service=url_service,
+    )
+
+
 def get_resource_param_bbox(
     parameter: str, id_resource: str, operation: str, url_service: Optional[str] = None
 ) -> Optional[QgsRectangle]:
