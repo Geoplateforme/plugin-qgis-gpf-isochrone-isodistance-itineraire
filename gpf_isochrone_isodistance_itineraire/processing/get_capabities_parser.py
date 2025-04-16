@@ -93,6 +93,59 @@ def get_available_resources(
     return []
 
 
+def get_resource_operation_parameters(
+    id_resource: str, operation: str, url_service: Optional[str] = None
+) -> Optional[List[Any]]:
+    """Get resource operation parameter list
+
+    :param id_resource: id resource
+    :type id_resource: str
+    :param operation: operation
+    :type operation: str
+    :param url_service: url for service, defaults to None (plugin settings param is used)
+    :type url_service: Optional[str], optional
+    :return: list of operation parameters
+    :rtype: Optional[List[Any]]
+    """
+    data = download_getcapabilities(url_service)
+
+    if data and "resources" in data:
+        # Parse resources to get available operation and check filter
+        for res in data["resources"]:
+            if res["id"] == id_resource:
+                for op in res["availableOperations"]:
+                    if op["id"] == operation:
+                        return op["availableParameters"]
+
+    return None
+
+
+def get_resource_profiles(
+    id_resource: str, operation: str, url_service: Optional[str] = None
+) -> List[str]:
+    """Get list of resource profile for an operation
+
+    :param id_resource: id resource
+    :type id_resource: str
+    :param operation: operation
+    :type operation: str
+    :param url_service: url for service, defaults to None (plugin settings param is used)
+    :type url_service: Optional[str], optional
+    :return: list of profiles for a resource
+    :rtype: List[str]
+    """
+    params = get_resource_operation_parameters(
+        id_resource=id_resource, operation=operation, url_service=url_service
+    )
+    if not params:
+        return []
+
+    for param in params:
+        if param["id"] == "profile":
+            return param["values"]
+    return []
+
+
 @lru_cache
 def download_getcapabilities(
     url_service: Optional[str] = None,
