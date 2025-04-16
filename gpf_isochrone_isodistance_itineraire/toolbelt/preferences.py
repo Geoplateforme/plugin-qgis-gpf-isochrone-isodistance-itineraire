@@ -51,6 +51,9 @@ class PlgSettingsStructure:
     debug_mode: bool = False
     version: str = __version__
 
+    # url service
+    url_service: str = "https://data.geopf.fr/navigation/"
+
 
 class PlgOptionsManager:
     @staticmethod

@@ -26,6 +26,14 @@ from qgis.core import (
 from qgis.PyQt.QtCore import QCoreApplication, QUrl
 from qgis.PyQt.QtNetwork import QNetworkRequest
 
+# project
+from gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser import (
+    get_available_resources,
+    isochrone_available_for_resource,
+    isochrone_available_for_service,
+)
+from gpf_isochrone_isodistance_itineraire.toolbelt.preferences import PlgOptionsManager
+
 
 class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
     URL_SERVICE = "URL_SERVICE"
@@ -129,12 +137,13 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
         :param configuration: configuration, defaults to {}
         :type configuration: Dict[str, Any], optional
         """
+        plg_settings = PlgOptionsManager().get_plg_settings()
 
         self.addParameter(
             QgsProcessingParameterString(
                 name=self.URL_SERVICE,
                 description=self.tr("Url service"),
-                defaultValue="https://data.geopf.fr/navigation/",
+                defaultValue=plg_settings.url_service,
             )
         )
         self.addParameter(
@@ -198,13 +207,6 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
         :return: True if the parameter are valid, False otherwise
         :rtype: bool
         """
-        self._url_service = ""
-        self._id_resource = ""
-        self._profile = ""
-        self._direction = ""
-        self._max_duration = "0.0"
-        self._additional_url_param = ""
-
         self._url_service = self.parameterAsString(
             parameters, self.URL_SERVICE, context
         )
@@ -212,7 +214,6 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
             parameters, self.ID_RESOURCE, context
         )
         self._profile = self.parameterAsExpression(parameters, self.PROFILE, context)
-
         self._direction = self.parameterAsExpression(
             parameters, self.DIRECTION, context
         )
@@ -223,6 +224,66 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
         self._additional_url_param = self.parameterAsExpression(
             parameters, self.ADDITIONAL_URL_PARAM, context
         )
+
+        # Check service for isochrone
+        if not isochrone_available_for_service(self._url_service):
+            if feedback:
+                feedback.reportError(
+                    self.tr(
+                        "Service isochrone indisponible pour l'url : {}".format(
+                            self._url_service
+                        )
+                    )
+                )
+            return False
+
+        # If id resource is fixed (not refering to a field), check that isochrone is available
+        if '"' not in self._id_resource and not self._check_resource(
+            self._id_resource, self._url_service, feedback
+        ):
+            return False
+
+        return True
+
+    def _check_resource(
+        self,
+        id_resource: str,
+        url_service: str,
+        feedback: Optional[QgsProcessingFeedback],
+    ) -> bool:
+        """Check if resource is valid for a isochrone service
+
+        :param id_resource: id resource
+        :type id_resource: str
+        :param url_service: url service
+        :type url_service: str
+        :param feedback: processing feedback
+        :type feedback: Optional[QgsProcessingFeedback]
+        :return: True if resource is valid, False otherwise
+        :rtype: bool
+        """
+        if id_resource not in get_available_resources(url_service):
+            if feedback:
+                feedback.reportError(
+                    self.tr(
+                        "Le service ne contient pas la resource : {}".format(
+                            id_resource
+                        )
+                    )
+                )
+            return False
+
+        if not isochrone_available_for_resource(id_resource, url_service):
+            if feedback:
+                feedback.reportError(
+                    self.tr(
+                        "Service isochrone indisponible pour la resource : {}".format(
+                            id_resource
+                        )
+                    )
+                )
+            return False
+
         return True
 
     def _evaluateExpression(
@@ -279,9 +340,13 @@ class IsochroneProcessing(QgsProcessingFeatureBasedAlgorithm):
         # TODO : get bounding box of GetCapabilites and check x/y
         request = f"{self._url_service}/isochrone?point={geom.x()},{geom.y()}"
 
-        # TODO check url getCapabilities to check values
+        # Check resource
         id_resource = self._evaluateExpression(expression_ctx, self._id_resource)
+        if not self._check_resource(id_resource, self._url_service, feedback):
+            return []
         request += f"&resource={id_resource}"
+
+        # TODO check url getCapabilities to check values
         max_duration = self._evaluateExpression(expression_ctx, self._max_duration)
         request += f"&costValue={max_duration}"
         request += "&costType=time&timeUnit=second"
