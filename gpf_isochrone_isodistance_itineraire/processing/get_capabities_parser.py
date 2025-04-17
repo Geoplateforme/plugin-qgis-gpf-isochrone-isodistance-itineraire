@@ -4,7 +4,7 @@ from functools import lru_cache
 from typing import Any, Dict, List, Optional
 
 # PyQGIS
-from qgis.core import Qgis, QgsBlockingNetworkRequest
+from qgis.core import Qgis, QgsBlockingNetworkRequest, QgsRectangle
 from qgis.PyQt.QtCore import QUrl
 from qgis.PyQt.QtNetwork import QNetworkRequest
 
@@ -168,6 +168,42 @@ def get_resource_profiles(
         operation=operation,
         url_service=url_service,
     )
+
+
+def get_resource_param_bbox(
+    parameter: str, id_resource: str, operation: str, url_service: Optional[str] = None
+) -> Optional[QgsRectangle]:
+    """Get resource bbox for an operation
+
+    :param id_resource: id resource
+    :type id_resource: str
+    :param operation: operation
+    :type operation: str
+    :param url_service: url for service, defaults to None (plugin settings param is used)
+    :type url_service: Optional[str], optional
+    :return: bbox for resource, None if bbox can't be defined
+    :rtype: Optional[QgsRectangle]
+    """
+    params = get_resource_operation_parameters(
+        id_resource=id_resource, operation=operation, url_service=url_service
+    )
+    if not params:
+        return None
+
+    for param in params:
+        if param["id"] == parameter:
+            bbox_str = param["values"]["bbox"]
+            try:
+                values = bbox_str.split(",")
+                return QgsRectangle(
+                    float(values[0]),
+                    float(values[1]),
+                    float(values[2]),
+                    float(values[3]),
+                )
+            except ValueError:
+                return None
+    return None
 
 
 def get_resource_direction(
