@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional
 
 # PyQGIS
 from qgis.core import Qgis, QgsBlockingNetworkRequest, QgsRectangle
-from qgis.PyQt.QtCore import QUrl
+from qgis.PyQt.QtCore import QUrl, QVariant
 from qgis.PyQt.QtNetwork import QNetworkRequest
 
 from gpf_isochrone_isodistance_itineraire.constants import ISOCHRONE_OPERATION
@@ -122,7 +122,7 @@ def get_resource_operation_parameters(
 
 def get_resource_operation_parameters_values(
     parameter: str, id_resource: str, operation: str, url_service: Optional[str] = None
-) -> List[Any]:
+) -> List[Optional[QVariant]]:
     """Get resource operation parameter values list
 
     :param parameter: parameter name
@@ -134,7 +134,7 @@ def get_resource_operation_parameters_values(
     :param url_service: url for service, defaults to None (plugin settings param is used)
     :type url_service: Optional[str], optional
     :return: list of operation parameters
-    :rtype: Optional[List[Any]]
+    :rtype: List[Optional[QVariant]]
     """
     params = get_resource_operation_parameters(
         id_resource=id_resource, operation=operation, url_service=url_service
