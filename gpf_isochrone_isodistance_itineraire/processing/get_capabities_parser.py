@@ -112,9 +112,17 @@ def get_resource_operation_parameters(
     if data and "resources" in data:
         # Parse resources to get available operation and check filter
         for res in data["resources"]:
-            if res["id"] == id_resource:
+            if (
+                "id" in res
+                and "availableOperations" in res
+                and res["id"] == id_resource
+            ):
                 for op in res["availableOperations"]:
-                    if op["id"] == operation:
+                    if (
+                        "id" in op
+                        and "availableParameters" in op
+                        and op["id"] == operation
+                    ):
                         return op["availableParameters"]
 
     return None
