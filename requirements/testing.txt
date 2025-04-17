@@ -3,3 +3,4 @@
 
 pytest-cov>=4
 packaging>=23
+pytest-qgis>=2.1.0
