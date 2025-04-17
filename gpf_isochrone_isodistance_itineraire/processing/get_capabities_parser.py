@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional
 
 # PyQGIS
 from qgis.core import Qgis, QgsBlockingNetworkRequest, QgsRectangle
-from qgis.PyQt.QtCore import QUrl
+from qgis.PyQt.QtCore import QUrl, QVariant
 from qgis.PyQt.QtNetwork import QNetworkRequest
 
 from gpf_isochrone_isodistance_itineraire.constants import ISOCHRONE_OPERATION
@@ -122,7 +122,7 @@ def get_resource_operation_parameters(
 
 def get_resource_operation_parameters_values(
     parameter: str, id_resource: str, operation: str, url_service: Optional[str] = None
-) -> List[str]:
+) -> List[Optional[QVariant]]:
     """Get resource operation parameter values list
 
     :param parameter: parameter name
@@ -134,7 +134,7 @@ def get_resource_operation_parameters_values(
     :param url_service: url for service, defaults to None (plugin settings param is used)
     :type url_service: Optional[str], optional
     :return: list of operation parameters
-    :rtype: Optional[List[Any]]
+    :rtype: List[Optional[QVariant]]
     """
     params = get_resource_operation_parameters(
         id_resource=id_resource, operation=operation, url_service=url_service
@@ -143,8 +143,36 @@ def get_resource_operation_parameters_values(
         return []
 
     for param in params:
-        if param["id"] == parameter:
+        if param["id"] == parameter and "values" in param:
             return param["values"]
+    return []
+
+
+def get_resource_operation_parameters_default_value(
+    parameter: str, id_resource: str, operation: str, url_service: Optional[str] = None
+) -> Optional[Any]:
+    """Get resource operation parameter default value
+
+    :param parameter: parameter name
+    :type parameter: str
+    :param id_resource: id resource
+    :type id_resource: str
+    :param operation: operation
+    :type operation: str
+    :param url_service: url for service, defaults to None (plugin settings param is used)
+    :type url_service: Optional[str], optional
+    :return: default value for parameter if available, None otherwise
+    :rtype: Optional[Any]
+    """
+    params = get_resource_operation_parameters(
+        id_resource=id_resource, operation=operation, url_service=url_service
+    )
+    if not params:
+        return []
+
+    for param in params:
+        if param["id"] == parameter and "defaultValue" in param:
+            return param["defaultValue"]
     return []
 
 
@@ -164,6 +192,64 @@ def get_resource_profiles(
     """
     return get_resource_operation_parameters_values(
         parameter="profile",
+        id_resource=id_resource,
+        operation=operation,
+        url_service=url_service,
+    )
+
+
+def get_resource_crs(
+    id_resource: str, operation: str, url_service: Optional[str] = None
+) -> List[str]:
+    """Get list of resource crs for an operation
+
+    :param id_resource: id resource
+    :type id_resource: str
+    :param operation: operation
+    :type operation: str
+    :param url_service: url for service, defaults to None (plugin settings param is used)
+    :type url_service: Optional[str], optional
+    :return: list of crs for a resource
+    :rtype: List[str]
+    """
+    if operation == ISOCHRONE_OPERATION:
+        return get_resource_operation_parameters_values(
+            parameter="projection",
+            id_resource=id_resource,
+            operation=operation,
+            url_service=url_service,
+        )
+    return get_resource_operation_parameters_values(
+        parameter="crs",
+        id_resource=id_resource,
+        operation=operation,
+        url_service=url_service,
+    )
+
+
+def get_resource_default_crs(
+    id_resource: str, operation: str, url_service: Optional[str] = None
+) -> Optional[str]:
+    """Get resource default crs for an operation
+
+    :param id_resource: id resource
+    :type id_resource: str
+    :param operation: operation
+    :type operation: str
+    :param url_service: url for service, defaults to None (plugin settings param is used)
+    :type url_service: Optional[str], optional
+    :return: default crs for a resource, None if not available
+    :rtype: Optional[str]
+    """
+    if operation == ISOCHRONE_OPERATION:
+        return get_resource_operation_parameters_default_value(
+            parameter="projection",
+            id_resource=id_resource,
+            operation=operation,
+            url_service=url_service,
+        )
+    return get_resource_operation_parameters_default_value(
+        parameter="crs",
         id_resource=id_resource,
         operation=operation,
         url_service=url_service,
