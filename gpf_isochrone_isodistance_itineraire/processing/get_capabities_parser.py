@@ -1,6 +1,5 @@
 # standard
 import json
-from functools import lru_cache
 from typing import Any, Dict, List, Optional
 
 # PyQGIS
@@ -340,9 +339,8 @@ def get_resource_cost_type(
     )
 
 
-@lru_cache
 def download_getcapabilities(
-    url_service: Optional[str] = None,
+    url_service: Optional[str] = None, forceRefresh: bool = False
 ) -> Optional[Dict[str, Any]]:
     """Download getcapabilities json content for a service
 
@@ -359,7 +357,7 @@ def download_getcapabilities(
 
     blocking_req = QgsBlockingNetworkRequest()
     qreq = QNetworkRequest(url=QUrl(url))
-    error_code = blocking_req.get(qreq, forceRefresh=False)
+    error_code = blocking_req.get(qreq, forceRefresh=forceRefresh)
 
     # Add feedback in case of error
     if error_code != QgsBlockingNetworkRequest.ErrorCode.NoError:
