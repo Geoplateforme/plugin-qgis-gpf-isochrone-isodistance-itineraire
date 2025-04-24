@@ -17,9 +17,9 @@ tracker=https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-i
 # experimental flag
 deprecated=False
 experimental=True
-qgisMinimumVersion=3.40.0
+qgisMinimumVersion=3.40.4
 qgisMaximumVersion=3.99.0
-qt6_compatible=True
+supportsQt6=True
 
 # versioning
 version=0.1.0
