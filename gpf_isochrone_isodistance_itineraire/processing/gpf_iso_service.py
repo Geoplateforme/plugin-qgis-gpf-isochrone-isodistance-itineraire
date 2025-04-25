@@ -1,5 +1,6 @@
 # standard
 import json
+from abc import abstractmethod
 from typing import Any, Dict, List, Optional
 
 # PyQGIS
@@ -73,6 +74,7 @@ class GpfIsoServiceProcessing(QgsProcessingFeatureBasedAlgorithm):
         """
         return QCoreApplication.translate(self.__class__.__name__, message)
 
+    @abstractmethod
     def get_max_cost_display_string(self) -> str:
         """Define display string for max cost value
 
@@ -84,6 +86,7 @@ class GpfIsoServiceProcessing(QgsProcessingFeatureBasedAlgorithm):
             "get_max_cost_display_string must be defined in implementation"
         )
 
+    @abstractmethod
     def get_max_cost_attribute_string(self) -> str:
         """Define attribute string for max cost value
 
@@ -94,19 +97,20 @@ class GpfIsoServiceProcessing(QgsProcessingFeatureBasedAlgorithm):
         raise NotImplementedError(
             "get_max_cost_attribute_string must be defined in implementation"
         )
-        # "max_duration"
 
-    def get_max_cost_maximum_value(self) -> float:
-        """Define maximum value for max cost value
+    @abstractmethod
+    def get_max_cost_default_value(self) -> float:
+        """Define default value for max cost value
 
         :raises NotImplementedError: exception if method not implemented
         :return: maximum value for max cost
         :rtype: float
         """
         raise NotImplementedError(
-            "get_max_cost_maximum_value must be defined in implementation"
+            "get_max_cost_default_value must be defined in implementation"
         )
 
+    @abstractmethod
     def get_cost_type(self) -> str:
         """Define cost type for request (time or distance)
 
@@ -116,6 +120,7 @@ class GpfIsoServiceProcessing(QgsProcessingFeatureBasedAlgorithm):
         """
         raise NotImplementedError("get_cost_type must be defined in implementation")
 
+    @abstractmethod
     def get_cost_unit_request_str(self) -> str:
         """Define request parameter for cost type unit
 
@@ -172,7 +177,7 @@ class GpfIsoServiceProcessing(QgsProcessingFeatureBasedAlgorithm):
                 name=self.MAX_COST,
                 description=self.get_max_cost_display_string(),
                 parentLayerParameterName=self.inputParameterName(),
-                defaultValue=self.get_max_cost_maximum_value(),
+                defaultValue=self.get_max_cost_default_value(),
             )
         )
 

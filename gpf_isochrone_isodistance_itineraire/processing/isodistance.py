@@ -90,18 +90,43 @@ class IsodistanceProcessing(GpfIsoServiceProcessing):
         return IsodistanceProcessing()
 
     def get_max_cost_display_string(self) -> str:
+        """Define display string for max cost value
+
+        :return: display string for max cost
+        :rtype: str
+        """
         return self.tr("Distance maximale (km)")
 
     def get_max_cost_attribute_string(self) -> str:
+        """Define attribute string for max cost value
+
+        :return: attribute string for max cost
+        :rtype: str
+        """
         return "max_distance"
 
-    def get_max_cost_maximum_value(self) -> float:
-        return 2000.0
+    def get_max_cost_default_value(self) -> float:
+        """Define default value for max cost value
+
+        :return: maximum value for max cost
+        :rtype: float
+        """
+        return 100.0
 
     def get_cost_type(self) -> str:
+        """Define cost type for request (time or distance)
+
+        :return: cost type for request
+        :rtype: str
+        """
         return "distance"
 
     def get_cost_unit_request_str(self) -> str:
+        """Define request parameter for cost type unit
+
+        :return: cost type unit request
+        :rtype: str
+        """
         return "&distanceUnit=kilometer"
 
     def outputName(self) -> str:

@@ -1,9 +1,7 @@
 # standard
 
 # PyQGIS
-from qgis.core import (
-    QgsProcessingAlgorithm,
-)
+from qgis.core import QgsProcessingAlgorithm
 from qgis.PyQt.QtCore import QCoreApplication
 
 # project
@@ -92,18 +90,43 @@ class IsochroneProcessing(GpfIsoServiceProcessing):
         return IsochroneProcessing()
 
     def get_max_cost_display_string(self) -> str:
+        """Define display string for max cost value
+
+        :return: display string for max cost
+        :rtype: str
+        """
         return self.tr("Durée maximale (secondes)")
 
     def get_max_cost_attribute_string(self) -> str:
+        """Define attribute string for max cost value
+
+        :return: attribute string for max cost
+        :rtype: str
+        """
         return "max_duration"
 
-    def get_max_cost_maximum_value(self) -> float:
+    def get_max_cost_default_value(self) -> float:
+        """Define default value for max cost value
+
+        :return: maximum value for max cost
+        :rtype: float
+        """
         return 3600.0
 
     def get_cost_type(self) -> str:
+        """Define cost type for request (time or distance)
+
+        :return: cost type for request
+        :rtype: str
+        """
         return "time"
 
     def get_cost_unit_request_str(self) -> str:
+        """Define request parameter for cost type unit
+
+        :return: cost type unit request
+        :rtype: str
+        """
         return "&timeUnit=second"
 
     def outputName(self) -> str:
