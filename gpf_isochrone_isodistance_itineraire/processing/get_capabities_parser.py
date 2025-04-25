@@ -353,7 +353,7 @@ def getcapabilities_json(url_service: Optional[str] = None) -> Optional[Dict[str
     :rtype: Optional[Dict[str, Any]]
     """
     # Check if cache available
-    cache_manager = CacheManager(".gpf_isochrone_isodistance", "cache")
+    cache_manager = CacheManager()
     getcap_cache_file = cache_manager.getcapabilities_cache_path(url_service)
 
     # Check if file is available and not older than 24h

@@ -16,7 +16,9 @@ from gpf_isochrone_isodistance_itineraire.toolbelt.application_folder import get
 class CacheManager:
     """Class for local cache management."""
 
-    def __init__(self, app_prefix: str, dir_name: str):
+    def __init__(
+        self, app_prefix: str = ".geoplateforme/isoservices", dir_name: str = "cache"
+    ):
         """Init CacheManager class
         For example on  linux with app_prefix = .qgis and dir_name = oslandia
         cache_path = /home/toto/.qgis/plugin_oslandia/

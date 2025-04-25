@@ -34,7 +34,7 @@ def _posixify(in_name: str) -> str:
 
 @lru_cache
 def get_app_dir(
-    dir_name: str, roaming: bool = True, app_prefix: str = ".gpg_isochrone_isodistance"
+    dir_name: str, roaming: bool = True, app_prefix: str = ".geoplateforme/isoservices"
 ) -> Path:
     """Get application directory, typically cache or config folder.  The default
         behavior is to return whatever is most appropriate for the operating system.
