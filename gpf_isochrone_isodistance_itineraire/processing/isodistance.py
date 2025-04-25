@@ -10,9 +10,9 @@ from gpf_isochrone_isodistance_itineraire.processing.gpf_iso_service import (
 )
 
 
-class IsochroneProcessing(GpfIsoServiceProcessing):
+class IsodistanceProcessing(GpfIsoServiceProcessing):
     def __init__(self) -> None:
-        """Processing for isochrone generation"""
+        """Processing for isodistance generation"""
         super().__init__()
 
     def tr(self, message: str) -> str:
@@ -53,7 +53,7 @@ class IsochroneProcessing(GpfIsoServiceProcessing):
         :return: processing name
         :rtype: str
         """
-        return "isochrone_processing"
+        return "isodistance_processing"
 
     def displayName(self) -> str:
         """Returns the translated algorithm name, which should be used for any user-visible display of the algorithm name.
@@ -61,7 +61,7 @@ class IsochroneProcessing(GpfIsoServiceProcessing):
         :return: display name
         :rtype: str
         """
-        return self.tr("Isochrone")
+        return self.tr("Isodistance")
 
     def group(self) -> str:
         """Returns the name of the group this algorithm belongs to. This string should be localised.
@@ -87,7 +87,7 @@ class IsochroneProcessing(GpfIsoServiceProcessing):
         :return: isochrone processing
         :rtype: QgsProcessingAlgorithm
         """
-        return IsochroneProcessing()
+        return IsodistanceProcessing()
 
     def get_max_cost_display_string(self) -> str:
         """Define display string for max cost value
@@ -95,7 +95,7 @@ class IsochroneProcessing(GpfIsoServiceProcessing):
         :return: display string for max cost
         :rtype: str
         """
-        return self.tr("Durée maximale (secondes)")
+        return self.tr("Distance maximale (km)")
 
     def get_max_cost_attribute_string(self) -> str:
         """Define attribute string for max cost value
@@ -103,7 +103,7 @@ class IsochroneProcessing(GpfIsoServiceProcessing):
         :return: attribute string for max cost
         :rtype: str
         """
-        return "max_duration"
+        return "max_distance"
 
     def get_max_cost_default_value(self) -> float:
         """Define default value for max cost value
@@ -111,7 +111,7 @@ class IsochroneProcessing(GpfIsoServiceProcessing):
         :return: maximum value for max cost
         :rtype: float
         """
-        return 3600.0
+        return 100.0
 
     def get_cost_type(self) -> str:
         """Define cost type for request (time or distance)
@@ -119,7 +119,7 @@ class IsochroneProcessing(GpfIsoServiceProcessing):
         :return: cost type for request
         :rtype: str
         """
-        return "time"
+        return "distance"
 
     def get_cost_unit_request_str(self) -> str:
         """Define request parameter for cost type unit
@@ -127,7 +127,7 @@ class IsochroneProcessing(GpfIsoServiceProcessing):
         :return: cost type unit request
         :rtype: str
         """
-        return "&timeUnit=second"
+        return "&distanceUnit=kilometer"
 
     def outputName(self) -> str:
         """Returns the translated, user visible name for any layers created by this algorithm.
@@ -135,4 +135,4 @@ class IsochroneProcessing(GpfIsoServiceProcessing):
         :return: _description_
         :rtype: str
         """
-        return self.tr("Isochrones")
+        return self.tr("Isodistance")
