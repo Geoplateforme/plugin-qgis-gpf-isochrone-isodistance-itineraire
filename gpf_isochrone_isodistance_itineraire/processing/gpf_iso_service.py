@@ -330,17 +330,17 @@ class GpfIsoServiceProcessing(QgsProcessingFeatureBasedAlgorithm):
         url_service: str,
         feedback: Optional[QgsProcessingFeedback],
     ) -> bool:
-        """Check if profile is valid for ressource
+        """Check if direction is valid for ressource
 
-        :param profile: profile
-        :type profile: str
+        :param direction: direction
+        :type direction: str
         :param id_resource: id resource
         :type id_resource: str
         :param url_service: url service
         :type url_service: str
         :param feedback: processing feedback
         :type feedback: Optional[QgsProcessingFeedback]
-        :return: True if profile is valid, False otherwise
+        :return: True if direction is valid, False otherwise
         :rtype: bool
         """
         if direction not in get_resource_direction(
@@ -365,17 +365,17 @@ class GpfIsoServiceProcessing(QgsProcessingFeatureBasedAlgorithm):
         url_service: str,
         feedback: Optional[QgsProcessingFeedback],
     ) -> bool:
-        """Check if profile is valid for ressource
+        """Check if cost type is valid for ressource
 
-        :param profile: profile
-        :type profile: str
+        :param cost_type: cost type
+        :type cost_type: str
         :param id_resource: id resource
         :type id_resource: str
         :param url_service: url service
         :type url_service: str
         :param feedback: processing feedback
         :type feedback: Optional[QgsProcessingFeedback]
-        :return: True if profile is valid, False otherwise
+        :return: True if cost type is valid, False otherwise
         :rtype: bool
         """
         if cost_type not in get_resource_cost_type(
@@ -396,21 +396,27 @@ class GpfIsoServiceProcessing(QgsProcessingFeatureBasedAlgorithm):
     def _check_point(
         self,
         geom: QgsPointXY,
+        geom_crs: QgsCoordinateReferenceSystem,
         id_resource: str,
         url_service: str,
+        context: QgsProcessingContext,
         feedback: Optional[QgsProcessingFeedback],
     ) -> bool:
         """Check if point is inside resource bbox
 
-        :param profile: profile
-        :type profile: str
+        :param geom: point geom
+        :type geom: QgsPointXY
+        :param geom_crs: point crs
+        :type geom_crs: QgsCoordinateReferenceSystem
         :param id_resource: id resource
         :type id_resource: str
         :param url_service: url service
         :type url_service: str
+        :param context: processing context
+        :type context: QgsProcessingContext
         :param feedback: processing feedback
         :type feedback: Optional[QgsProcessingFeedback]
-        :return: True if profile is valid, False otherwise
+        :return: True if point is inside resource bbox, False otherwise
         :rtype: bool
         """
         bbox = get_resource_param_bbox(
@@ -429,6 +435,15 @@ class GpfIsoServiceProcessing(QgsProcessingFeatureBasedAlgorithm):
                     )
                 )
         else:
+            # convert bbox to input crs
+            source_crs = QgsCoordinateReferenceSystem("EPSG:4326")
+            transform = QgsCoordinateTransform(
+                source_crs,
+                geom_crs,
+                context.transformContext(),
+            )
+            bbox = transform.transformBoundingBox(bbox)
+
             if not bbox.contains(geom):
                 if feedback:
                     feedback.reportError(
@@ -574,7 +589,9 @@ class GpfIsoServiceProcessing(QgsProcessingFeatureBasedAlgorithm):
         request += f"&resource={id_resource}"
 
         # Check point geom
-        if not self._check_point(geom, id_resource, self._url_service, feedback):
+        if not self._check_point(
+            geom, request_crs, id_resource, self._url_service, context, feedback
+        ):
             return []
 
         # Check profile
