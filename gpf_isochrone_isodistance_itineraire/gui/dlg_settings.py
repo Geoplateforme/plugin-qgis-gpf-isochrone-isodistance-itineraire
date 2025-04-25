@@ -26,6 +26,7 @@ from gpf_isochrone_isodistance_itineraire.__about__ import (
     __version__,
 )
 from gpf_isochrone_isodistance_itineraire.toolbelt import PlgLogger, PlgOptionsManager
+from gpf_isochrone_isodistance_itineraire.toolbelt.cache_manager import CacheManager
 from gpf_isochrone_isodistance_itineraire.toolbelt.preferences import (
     PlgSettingsStructure,
 )
@@ -51,6 +52,7 @@ class ConfigOptionsPage(FORM_CLASS, QgsOptionsPageWidget):
         super().__init__(parent)
         self.log = PlgLogger().log
         self.plg_settings = PlgOptionsManager()
+        self.cache_manager = CacheManager()
 
         # load UI and set objectName
         self.setupUi(self)
@@ -87,6 +89,12 @@ class ConfigOptionsPage(FORM_CLASS, QgsOptionsPageWidget):
                 ),
             )
         )
+
+        self.btn_clear_cache.setIcon(
+            # QgsApplication.getThemeIcon("iconClearConsole.svg")
+            QIcon(":images/themes/default/console/iconClearConsole.svg")
+        )
+        self.btn_clear_cache.pressed.connect(partial(self.cache_manager.clear_cache))
 
         self.btn_reset.setIcon(QIcon(QgsApplication.iconPath("mActionUndo.svg")))
         self.btn_reset.pressed.connect(self.reset_settings)

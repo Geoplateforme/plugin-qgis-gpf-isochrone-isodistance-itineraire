@@ -60,7 +60,7 @@ class TestGetCapabilitiesParser(unittest.TestCase):
         }
 
     @patch(
-        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.download_getcapabilities"
+        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.getcapabilities_json"
     )
     def test_isochrone_available_for_service(self, mock_download):
         """Test isochrone service available in operations
@@ -72,7 +72,7 @@ class TestGetCapabilitiesParser(unittest.TestCase):
         self.assertTrue(getcap.isochrone_available_for_service())
 
     @patch(
-        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.download_getcapabilities"
+        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.getcapabilities_json"
     )
     def test_isochrone_not_available_for_service(self, mock_download):
         """Test when service is not available
@@ -85,7 +85,7 @@ class TestGetCapabilitiesParser(unittest.TestCase):
         self.assertFalse(getcap.isochrone_available_for_service())
 
     @patch(
-        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.download_getcapabilities"
+        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.getcapabilities_json"
     )
     def test_get_available_operation(self, mock_download: MagicMock):
         """Check read of available operation
@@ -99,7 +99,7 @@ class TestGetCapabilitiesParser(unittest.TestCase):
         self.assertIn("route", operations)
 
     @patch(
-        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.download_getcapabilities"
+        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.getcapabilities_json"
     )
     def test_isochrone_available_for_resource(self, mock_download: MagicMock):
         """Check of isochrone operation for a resource
@@ -113,7 +113,7 @@ class TestGetCapabilitiesParser(unittest.TestCase):
         )
 
     @patch(
-        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.download_getcapabilities"
+        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.getcapabilities_json"
     )
     def test_isochrone_not_available_for_resource(self, mock_download: MagicMock):
         """Check of isochrone operation for a resource
@@ -125,7 +125,7 @@ class TestGetCapabilitiesParser(unittest.TestCase):
         self.assertFalse(getcap.isochrone_available_for_resource(self.ROUTE_RESOURCE))
 
     @patch(
-        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.download_getcapabilities"
+        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.getcapabilities_json"
     )
     def test_isochrone_for_invalid_resource(self, mock_download: MagicMock):
         """Check of isochrone operation for a invalid resource
@@ -137,7 +137,7 @@ class TestGetCapabilitiesParser(unittest.TestCase):
         self.assertFalse(getcap.isochrone_available_for_resource("unavailable"))
 
     @patch(
-        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.download_getcapabilities"
+        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.getcapabilities_json"
     )
     def test_get_available_resources(self, mock_download: MagicMock):
         """Get list of available resources for an operation
@@ -155,7 +155,7 @@ class TestGetCapabilitiesParser(unittest.TestCase):
         self.assertIn(self.ROUTE_RESOURCE, resources)
 
     @patch(
-        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.download_getcapabilities"
+        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.getcapabilities_json"
     )
     def test_get_resource_operation_parameters(self, mock_download: MagicMock):
         """Get list of available parameter for a resource operation
@@ -175,7 +175,7 @@ class TestGetCapabilitiesParser(unittest.TestCase):
         self.assertIsNone(params)
 
     @patch(
-        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.download_getcapabilities"
+        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.getcapabilities_json"
     )
     def test_get_resource_operation_parameters_values(self, mock_download: MagicMock):
         """Get list of available parameter values for a resource operation
@@ -206,7 +206,7 @@ class TestGetCapabilitiesParser(unittest.TestCase):
         self.assertEqual(len(params), 0)
 
     @patch(
-        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.download_getcapabilities"
+        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.getcapabilities_json"
     )
     def test_get_resource_profiles(self, mock_download: MagicMock):
         """Get list of available profile for a resource operation
@@ -219,7 +219,7 @@ class TestGetCapabilitiesParser(unittest.TestCase):
         self.assertIn("bike", profiles)
 
     @patch(
-        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.download_getcapabilities"
+        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.getcapabilities_json"
     )
     def test_get_resource_crs(self, mock_download: MagicMock):
         """Get list of available crs for a resource operation
@@ -232,7 +232,7 @@ class TestGetCapabilitiesParser(unittest.TestCase):
         self.assertIn("EPSG:4326", crs)
 
     @patch(
-        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.download_getcapabilities"
+        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.getcapabilities_json"
     )
     def test_get_resource_default_crs(self, mock_download: MagicMock):
         """Get default crs for a resource operation
@@ -247,7 +247,7 @@ class TestGetCapabilitiesParser(unittest.TestCase):
         self.assertEqual(default_crs, "EPSG:4326")
 
     @patch(
-        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.download_getcapabilities"
+        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.getcapabilities_json"
     )
     def test_get_resource_direction(self, mock_download: MagicMock):
         """Get direction for a resource operation
@@ -260,7 +260,7 @@ class TestGetCapabilitiesParser(unittest.TestCase):
         self.assertIn("forward", directions)
 
     @patch(
-        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.download_getcapabilities"
+        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.getcapabilities_json"
     )
     def test_get_resource_cost_type(self, mock_download: MagicMock):
         """Get cost type for a resource operation
@@ -273,7 +273,7 @@ class TestGetCapabilitiesParser(unittest.TestCase):
         self.assertIn("time", cost_types)
 
     @patch(
-        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.download_getcapabilities"
+        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.getcapabilities_json"
     )
     def test_get_resource_param_bbox(self, mock_download: MagicMock):
         """Get bbox for a resource operation
@@ -296,7 +296,7 @@ class TestGetCapabilitiesParser(unittest.TestCase):
         self.assertIsNone(bbox)
 
     @patch(
-        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.download_getcapabilities"
+        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.getcapabilities_json"
     )
     def test_get_available_operation_with_empty_data(self, mock_download: MagicMock):
         """Check empty operation return for empty getcap
@@ -309,7 +309,7 @@ class TestGetCapabilitiesParser(unittest.TestCase):
         self.assertEqual(operations, [])
 
     @patch(
-        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.download_getcapabilities"
+        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.getcapabilities_json"
     )
     def test_get_available_resources_with_missing_operations(
         self, mock_download: MagicMock
@@ -326,7 +326,7 @@ class TestGetCapabilitiesParser(unittest.TestCase):
         self.assertEqual(resources, [])
 
     @patch(
-        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.download_getcapabilities"
+        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.getcapabilities_json"
     )
     def test_get_resource_operation_parameters_invalid_resource(
         self, mock_download: MagicMock
@@ -343,7 +343,7 @@ class TestGetCapabilitiesParser(unittest.TestCase):
         self.assertIsNone(params)
 
     @patch(
-        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.download_getcapabilities"
+        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.getcapabilities_json"
     )
     def test_get_resource_operation_parameters_invalid_operation(
         self, mock_download: MagicMock
@@ -360,7 +360,7 @@ class TestGetCapabilitiesParser(unittest.TestCase):
         self.assertIsNone(params)
 
     @patch(
-        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.download_getcapabilities"
+        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.getcapabilities_json"
     )
     def test_get_resource_param_bbox_missing_bbox(self, mock_download: MagicMock):
         """Check None return for missing bbox
@@ -383,7 +383,7 @@ class TestGetCapabilitiesParser(unittest.TestCase):
         self.assertIsNone(bbox)
 
     @patch(
-        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.download_getcapabilities"
+        "gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser.getcapabilities_json"
     )
     def test_get_resource_profiles_with_invalid_data(self, mock_download: MagicMock):
         """Check empty profiles return if no data available

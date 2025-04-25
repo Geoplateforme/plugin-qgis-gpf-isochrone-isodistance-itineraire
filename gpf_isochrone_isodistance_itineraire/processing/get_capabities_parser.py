@@ -4,10 +4,12 @@ from typing import Any, Dict, List, Optional
 
 # PyQGIS
 from qgis.core import Qgis, QgsBlockingNetworkRequest, QgsRectangle
-from qgis.PyQt.QtCore import QUrl, QVariant
+from qgis.PyQt.QtCore import QByteArray, QUrl, QVariant
 from qgis.PyQt.QtNetwork import QNetworkRequest
 
 from gpf_isochrone_isodistance_itineraire.constants import ISOCHRONE_OPERATION
+from gpf_isochrone_isodistance_itineraire.toolbelt.cache_manager import CacheManager
+from gpf_isochrone_isodistance_itineraire.toolbelt.file_stats import is_file_older_than
 from gpf_isochrone_isodistance_itineraire.toolbelt.log_handler import PlgLogger
 from gpf_isochrone_isodistance_itineraire.toolbelt.preferences import PlgOptionsManager
 
@@ -39,7 +41,7 @@ def get_available_operation(url_service: Optional[str] = None) -> List[str]:
     :return: list of available operations
     :rtype: List[str]
     """
-    data = download_getcapabilities(url_service)
+    data = getcapabilities_json(url_service)
     if data and "operations" in data:
         return [op["id"] for op in data["operations"]]
     return []
@@ -75,7 +77,7 @@ def get_available_resources(
     :return: list of available resources
     :rtype: List[str]
     """
-    data = download_getcapabilities(url_service)
+    data = getcapabilities_json(url_service)
     if data and "resources" in data:
         # If no operation filter return all resources
         if operation is None:
@@ -106,7 +108,7 @@ def get_resource_operation_parameters(
     :return: list of operation parameters
     :rtype: Optional[List[Any]]
     """
-    data = download_getcapabilities(url_service)
+    data = getcapabilities_json(url_service)
 
     if data and "resources" in data:
         # Parse resources to get available operation and check filter
@@ -337,6 +339,40 @@ def get_resource_cost_type(
         operation=ISOCHRONE_OPERATION,
         url_service=url_service,
     )
+
+
+def getcapabilities_json(url_service: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    """Returns getcapabilities json for an url.
+
+    First check if data is available in cache an not older than 24h
+    Otherwise a request is made to get value and save it in cache
+
+    :param url_service: url for service, defaults to None (plugin settings param is used)
+    :type url_service: Optional[str], optional
+    :return: json content for getcapabilities, None if error
+    :rtype: Optional[Dict[str, Any]]
+    """
+    # Check if cache available
+    cache_manager = CacheManager()
+    getcap_cache_file = cache_manager.getcapabilities_cache_path(url_service)
+
+    # Check if file is available and not older than 24h
+    if is_file_older_than(
+        local_file_path=getcap_cache_file,
+        expiration_rotating_hours=24,
+    ):
+        result = download_getcapabilities(url_service=url_service, forceRefresh=True)
+        if result:
+            json_str = json.dumps(result)
+            cache_manager.save_cache_file_content(
+                getcap_cache_file, QByteArray(json_str.encode("utf-8"))
+            )
+    else:
+        # Load cache content
+        with open(getcap_cache_file, "r", encoding="utf-8") as f:
+            result = json.load(f)
+
+    return result
 
 
 def download_getcapabilities(
