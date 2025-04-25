@@ -352,6 +352,10 @@ def getcapabilities_json(url_service: Optional[str] = None) -> Optional[Dict[str
     :return: json content for getcapabilities, None if error
     :rtype: Optional[Dict[str, Any]]
     """
+    if not url_service:
+        plg_settings = PlgOptionsManager().get_plg_settings()
+        url_service = plg_settings.url_service
+
     # Check if cache available
     cache_manager = CacheManager()
     getcap_cache_file = cache_manager.getcapabilities_cache_path(url_service)
