@@ -9,11 +9,16 @@ from functools import partial
 from pathlib import Path
 
 # PyQGIS
-from qgis.core import QgsApplication, QgsSettings
+from qgis.core import (
+    QgsApplication,
+    QgsCoordinateReferenceSystem,
+    QgsPointXY,
+    QgsSettings,
+)
 from qgis.gui import QgisInterface
-from qgis.PyQt.QtCore import QCoreApplication, QLocale, QTranslator, QUrl
+from qgis.PyQt.QtCore import QCoreApplication, QLocale, Qt, QTranslator, QUrl
 from qgis.PyQt.QtGui import QDesktopServices, QIcon
-from qgis.PyQt.QtWidgets import QAction
+from qgis.PyQt.QtWidgets import QAction, QDockWidget, QWidget
 
 # project
 from gpf_isochrone_isodistance_itineraire.__about__ import (
@@ -23,6 +28,7 @@ from gpf_isochrone_isodistance_itineraire.__about__ import (
     __uri_homepage__,
 )
 from gpf_isochrone_isodistance_itineraire.gui.dlg_settings import PlgOptionsFactory
+from gpf_isochrone_isodistance_itineraire.gui.wdg_iso_service import IsoServiceWidget
 from gpf_isochrone_isodistance_itineraire.processing.provider import (
     PluginGpfIsochroneIsodistanceItineraireProvider,
 )
@@ -44,6 +50,9 @@ class GpfIsochroneIsodistanceItinerairePlugin:
         self.iface = iface
         self.provider = None
         self.log = PlgLogger().log
+
+        self.docks = []
+        self.actions = []
 
         # translation
         # initialize the locale
@@ -115,6 +124,64 @@ class GpfIsochroneIsodistanceItinerairePlugin:
         self.provider = PluginGpfIsochroneIsodistanceItineraireProvider()
         QgsApplication.processingRegistry().addProvider(self.provider)
 
+        self.iface.initializationCompleted.connect(self._init_widget)
+
+    def _init_widget(self) -> None:
+        """Init widget for plugin after QGIS initialization"""
+
+        # Create widget for isoservice
+        isoservice_widget = IsoServiceWidget(self.iface.mainWindow())
+
+        # Define default position
+        isoservice_widget.wdg_point_selection.set_crs(
+            QgsCoordinateReferenceSystem("EPSG:4326")
+        )
+        isoservice_widget.wdg_point_selection.set_display_point(
+            QgsPointXY(2.42412, 48.84572)
+        )
+
+        # Add dockwidget with action
+        self.add_dock_widget_and_action(
+            title=self.tr("Calcul isochrone / isodistance"),
+            name="isochron_isodistance_compute",
+            widget=isoservice_widget,
+        )
+
+    def add_dock_widget_and_action(self, title: str, name: str, widget: QWidget):
+        """Add widget display as QDockWidget with an QAction in plugin toolbar
+
+
+        :param name: dockwidget name for position save
+        :type name: str
+        :param widget: widget to insert
+        :type widget: QWidget
+        """
+
+        # Create dockwidget
+        dock = QDockWidget(title, self.iface.mainWindow())
+        dock.setObjectName(name)
+        dock.setWindowIcon(widget.windowIcon())
+
+        # Add widget
+        dock.setWidget(widget)
+
+        # Add to QGIS
+        self.iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
+
+        # Default close
+        dock.close()
+
+        # Append to dock list for unload
+        self.docks.append(dock)
+        dock.toggleViewAction().setIcon(widget.windowIcon())
+
+        # Append to action list for unload
+        action = dock.toggleViewAction()
+        self.actions.append(action)
+
+        # Add action to toolbar
+        self.iface.addToolBarIcon(action)
+
     def tr(self, message: str) -> str:
         """Get the translation for a string using Qt translation API.
 
@@ -128,6 +195,14 @@ class GpfIsochroneIsodistanceItinerairePlugin:
 
     def unload(self):
         """Cleans up when plugin is disabled/uninstalled."""
+        for _actions in self.actions:
+            self.iface.removeToolBarIcon(_actions)
+            del _actions
+        for _dock in self.docks:
+            self.iface.removeDockWidget(_dock)
+            _dock.deleteLater()
+        self.docks.clear()
+
         # -- Clean up menu
         self.iface.removePluginMenu(__title__, self.action_help)
         self.iface.removePluginMenu(__title__, self.action_settings)
