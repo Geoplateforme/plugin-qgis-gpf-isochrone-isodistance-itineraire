@@ -4,7 +4,7 @@ about=Utiliser le service de calcul d'isochrone, isodistance et d'itinéraire de
 category=Web
 hasProcessingProvider=True
 description=Intégration de l'API de la Géoplateforme de calcul d'isochrone, d'isodisance et d'itinéraires dans QGIS.
-icon=resources/images/default_icon.png
+icon=resources/images/logo_isoservices.svg
 tags=IGN,Géoplateforme,itinéraire,isochone,isodistance,routing,API,Valhalla,pgRouting,OSRM
 
 # credits and contact
