@@ -16,7 +16,7 @@ Unreleased
 
 -->
 
-## 0.2.0-beta1 - 2025-04-25
+## 0.2.0-beta1 - 2025-04-29
 
 * feat(getcap): check direction and cost type by @jmkerloch in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/6>
 * feat(getcap): test if point is inside resource bbox by @jmkerloch in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/7>
@@ -27,6 +27,9 @@ Unreleased
 * feat(isochrone): init processing by @jmkerloch in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/2>
 * feat(getcap): test if isochrone available for service and resources by @jmkerloch in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/4>
 * feat(getcap): test if profile is available for a resource by @jmkerloch in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/5>
+* feat(getcap): use local cache to store getcap for a service url by @jmkerloch in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/11>
+* feature(isodistance): add processing by @jmkerloch in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/12>
+* feat(isoservice): add widget to use isoservice by @jmkerloch in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/16>
 * fix(ci): make QGIS tests work again on new Docker images by @Guts in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/1>
 
 ## 0.1.0 - 2025-04-07
