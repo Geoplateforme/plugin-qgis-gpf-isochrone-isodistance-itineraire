@@ -500,7 +500,7 @@ class GpfIsoServiceProcessing(QgsProcessingFeatureBasedAlgorithm):
         supported_crs = get_resource_crs(
             id_resource=id_resource,
             operation=ISOCHRONE_OPERATION,
-            url_service=self._url_service,
+            url_service=url_service,
         )
         if len(supported_crs) == 0:
             if feedback:
