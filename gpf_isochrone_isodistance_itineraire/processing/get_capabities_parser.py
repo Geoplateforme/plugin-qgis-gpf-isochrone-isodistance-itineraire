@@ -7,7 +7,10 @@ from qgis.core import Qgis, QgsBlockingNetworkRequest, QgsRectangle
 from qgis.PyQt.QtCore import QByteArray, QUrl, QVariant
 from qgis.PyQt.QtNetwork import QNetworkRequest
 
-from gpf_isochrone_isodistance_itineraire.constants import ISOCHRONE_OPERATION
+from gpf_isochrone_isodistance_itineraire.constants import (
+    ISOCHRONE_OPERATION,
+    ROUTE_OPERATION,
+)
 from gpf_isochrone_isodistance_itineraire.toolbelt.cache_manager import CacheManager
 from gpf_isochrone_isodistance_itineraire.toolbelt.file_stats import is_file_older_than
 from gpf_isochrone_isodistance_itineraire.toolbelt.log_handler import PlgLogger
@@ -31,6 +34,17 @@ def isochrone_available_for_service(url_service: Optional[str] = None) -> bool:
     :rtype: bool
     """
     return ISOCHRONE_OPERATION in get_available_operation(url_service)
+
+
+def route_available_for_service(url_service: Optional[str] = None) -> bool:
+    """Check if route is available for service
+
+    :param url_service: url for service, defaults to None (plugin settings param is used)
+    :type url_service: Optional[str], optional
+    :return: True if route is available for service, False otherwise
+    :rtype: bool
+    """
+    return ROUTE_OPERATION in get_available_operation(url_service)
 
 
 def get_available_operation(url_service: Optional[str] = None) -> List[str]:
@@ -60,6 +74,22 @@ def isochrone_available_for_resource(
     :rtype: bool
     """
     available_resources = get_available_resources(url_service, ISOCHRONE_OPERATION)
+    return id_resource in available_resources
+
+
+def route_available_for_resource(
+    id_resource: str, url_service: Optional[str] = None
+) -> bool:
+    """Check if route is available for a resource
+
+    :param id_resource: id resource
+    :type id_resource: str
+    :param url_service: url for service, defaults to None (plugin settings param is used)
+    :type url_service: Optional[str], optional
+    :return: True if route is available for resource, False otherwise
+    :rtype: bool
+    """
+    available_resources = get_available_resources(url_service, ROUTE_OPERATION)
     return id_resource in available_resources
 
 
@@ -337,6 +367,26 @@ def get_resource_cost_type(
         parameter="costType",
         id_resource=id_resource,
         operation=ISOCHRONE_OPERATION,
+        url_service=url_service,
+    )
+
+
+def get_resource_optimization(
+    id_resource: str, url_service: Optional[str] = None
+) -> List[str]:
+    """Get list of optimization for a route operation
+
+    :param id_resource: id resource
+    :type id_resource: str
+    :param url_service: url for service, defaults to None (plugin settings param is used)
+    :type url_service: Optional[str], optional
+    :return: list of profiles for a resource
+    :rtype: List[str]
+    """
+    return get_resource_operation_parameters_values(
+        parameter="optimization",
+        id_resource=id_resource,
+        operation=ROUTE_OPERATION,
         url_service=url_service,
     )
 
