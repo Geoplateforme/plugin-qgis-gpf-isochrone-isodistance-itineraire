@@ -11,6 +11,7 @@ from qgis.core import (
     QgsCoordinateTransform,
     QgsPointXY,
     QgsRectangle,
+    QgsReferencedPointXY,
 )
 from qgis.gui import QgsMapToolEmitPoint, QgsProjectionSelectionDialog, QgsVertexMarker
 from qgis.PyQt import uic
@@ -72,6 +73,14 @@ class PointSelectionWidget(QWidget):
         :rtype: QgsPointXY
         """
         return QgsPointXY(self.spb_x.value(), self.spb_y.value())
+
+    def get_referenced_displayed_point(self) -> QgsReferencedPointXY:
+        """Return display point with associated crs
+
+        :return: display point with associated crs
+        :rtype: QgsReferencedPointXY
+        """
+        return QgsReferencedPointXY(self.get_displayed_point(), self.get_crs())
 
     def set_display_point(self, point: QgsPointXY) -> None:
         """Define display point and update marker
