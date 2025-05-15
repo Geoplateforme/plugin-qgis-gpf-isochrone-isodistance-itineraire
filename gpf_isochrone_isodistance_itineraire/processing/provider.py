@@ -21,6 +21,9 @@ from gpf_isochrone_isodistance_itineraire.processing.isochrone import (
 from gpf_isochrone_isodistance_itineraire.processing.isodistance import (
     IsodistanceProcessing,
 )
+from gpf_isochrone_isodistance_itineraire.processing.itinerary import (
+    ItineraryProcessing,
+)
 
 # ############################################################################
 # ########## Classes ###############
@@ -34,6 +37,7 @@ class PluginGpfIsochroneIsodistanceItineraireProvider(QgsProcessingProvider):
         """Loads all algorithms belonging to this provider."""
         self.addAlgorithm(IsochroneProcessing())
         self.addAlgorithm(IsodistanceProcessing())
+        self.addAlgorithm(ItineraryProcessing())
 
     def id(self) -> str:
         """Unique provider id, used for identifying it. This string should be unique, \
