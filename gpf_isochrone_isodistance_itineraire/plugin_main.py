@@ -29,6 +29,7 @@ from gpf_isochrone_isodistance_itineraire.__about__ import (
 )
 from gpf_isochrone_isodistance_itineraire.gui.dlg_settings import PlgOptionsFactory
 from gpf_isochrone_isodistance_itineraire.gui.wdg_iso_service import IsoServiceWidget
+from gpf_isochrone_isodistance_itineraire.gui.wdg_itinerary import ItineraryWidget
 from gpf_isochrone_isodistance_itineraire.processing.provider import (
     PluginGpfIsochroneIsodistanceItineraireProvider,
 )
@@ -57,6 +58,7 @@ class GpfIsochroneIsodistanceItinerairePlugin:
         self.docks = []
         self.actions = []
         self.isoservice_widget_action = None
+        self.itinerary_widget_action = None
 
         # translation
         # initialize the locale
@@ -151,8 +153,31 @@ class GpfIsochroneIsodistanceItinerairePlugin:
         # Add dockwidget with action
         self.isoservice_widget_action = self.add_dock_widget_and_action(
             title=self.tr("Calcul isochrone / isodistance"),
-            name="isochron_isodistance_compute",
+            name="isochrone_isodistance_compute",
             widget=isoservice_widget,
+        )
+
+        # Create widget for itinerary
+        itinerary_widget = ItineraryWidget(self.iface.mainWindow())
+        # Define default position
+        itinerary_widget.wdg_start_selection.set_crs(
+            QgsCoordinateReferenceSystem("EPSG:4326")
+        )
+        itinerary_widget.wdg_start_selection.set_display_point(
+            QgsPointXY(2.42412, 48.84572)
+        )
+
+        itinerary_widget.wdg_end_selection.set_crs(
+            QgsCoordinateReferenceSystem("EPSG:4326")
+        )
+        itinerary_widget.wdg_end_selection.set_display_point(
+            QgsPointXY(2.42412, 48.84572)
+        )
+
+        self.itinerary_widget_action = self.add_dock_widget_and_action(
+            title=self.tr("Calcul itinéraire"),
+            name="itinerary_compute",
+            widget=itinerary_widget,
         )
 
     def add_dock_widget_and_action(
@@ -237,6 +262,34 @@ class GpfIsochroneIsodistanceItinerairePlugin:
         iso_service_action.setMenu(iso_service_menu)
 
         available_actions.append(iso_service_action)
+
+        # Itinerary actions
+        itinerary_action = QAction(
+            QIcon(str(DIR_PLUGIN_ROOT / "resources/images/logo_isoservices.svg")),
+            self.tr("Itineraire"),
+            parent,
+        )
+        itinerary_menu = QMenu()
+        if self.itinerary_widget_action:
+            itinerary_menu.addAction(self.itinerary_widget_action)
+
+        # Itinerary Processings
+        itinerary_action_processing = QAction(self.tr("Traitements"), parent)
+        itinerary_menu_processing = QMenu(parent)
+        itinerary_menu_processing.addAction(
+            create_processing_action(
+                "gpf_isochrone_isodistance_itineraire:itinerary",
+                itinerary_menu_processing,
+            )
+        )
+
+        itinerary_action_processing.setMenu(itinerary_menu_processing)
+
+        itinerary_menu.addAction(itinerary_action_processing)
+
+        itinerary_action.setMenu(itinerary_menu)
+
+        available_actions.append(itinerary_action)
 
         return available_actions
 
