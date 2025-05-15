@@ -371,6 +371,26 @@ def get_resource_cost_type(
     )
 
 
+def get_resource_optimization(
+    id_resource: str, url_service: Optional[str] = None
+) -> List[str]:
+    """Get list of optimization for a route operation
+
+    :param id_resource: id resource
+    :type id_resource: str
+    :param url_service: url for service, defaults to None (plugin settings param is used)
+    :type url_service: Optional[str], optional
+    :return: list of profiles for a resource
+    :rtype: List[str]
+    """
+    return get_resource_operation_parameters_values(
+        parameter="optimization",
+        id_resource=id_resource,
+        operation=ROUTE_OPERATION,
+        url_service=url_service,
+    )
+
+
 def getcapabilities_json(url_service: Optional[str] = None) -> Optional[Dict[str, Any]]:
     """Returns getcapabilities json for an url.
 
