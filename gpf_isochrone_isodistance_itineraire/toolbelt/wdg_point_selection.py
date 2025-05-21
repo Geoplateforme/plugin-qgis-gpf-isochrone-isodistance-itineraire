@@ -13,7 +13,12 @@ from qgis.core import (
     QgsRectangle,
     QgsReferencedPointXY,
 )
-from qgis.gui import QgsMapToolEmitPoint, QgsProjectionSelectionDialog, QgsVertexMarker
+from qgis.gui import (
+    QgsMapTool,
+    QgsMapToolEmitPoint,
+    QgsProjectionSelectionDialog,
+    QgsVertexMarker,
+)
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor, QIcon
@@ -43,6 +48,13 @@ class PointSelectionWidget(QWidget):
         # Not visible until maptool is activated
         self.marker.setVisible(False)
 
+        self.btn_show_point.setChecked(False)
+        self.btn_show_point.setToolTip(self.tr("Visibilité marqueur"))
+        self.btn_show_point.setIcon(
+            QIcon(":images/themes/default/mActionShowAllLayersGray.svg")
+        )
+        self.btn_show_point.clicked.connect(self._show_point_clicked)
+
         # Connect to value changes for marker coordinate update
         self.spb_x.valueChanged.connect(self._update_marker_position)
         self.spb_y.valueChanged.connect(self._update_marker_position)
@@ -56,15 +68,19 @@ class PointSelectionWidget(QWidget):
         self._map_tool = QgsMapToolEmitPoint(iface.mapCanvas())
         self._map_tool.canvasClicked.connect(self._point_selected)
 
+        self.btn_select_point.setToolTip(self.tr("Sélection point"))
         self.btn_select_point.setIcon(
             QIcon(":images/themes/default/cursors/mCapturePoint.svg")
         )
         self.btn_select_point.clicked.connect(self._selection_clicked)
 
+        self.btn_projection.setToolTip(self.tr("Sélection projection"))
         self.btn_projection.setIcon(
             QIcon(":images/themes/default/propertyicons/CRS.svg")
         )
         self.btn_projection.clicked.connect(self._select_crs)
+
+        iface.mapCanvas().mapToolSet.connect(self._canvas_maptool_set)
 
     def get_displayed_point(self) -> QgsPointXY:
         """Return displayed point
@@ -73,6 +89,14 @@ class PointSelectionWidget(QWidget):
         :rtype: QgsPointXY
         """
         return QgsPointXY(self.spb_x.value(), self.spb_y.value())
+
+    def set_marker_color(self, color: QColor) -> None:
+        """Define color used for marker
+
+        :param color: _description_
+        :type color: QColor
+        """
+        self.marker.setColor(color)
 
     def get_referenced_displayed_point(self) -> QgsReferencedPointXY:
         """Return display point with associated crs
@@ -107,6 +131,37 @@ class PointSelectionWidget(QWidget):
             point, self._current_crs, iface.mapCanvas().mapSettings().destinationCrs()
         )
         self.marker.setCenter(new_point)
+
+    def _show_point_clicked(self, checked: bool) -> None:
+        """Update icon for show point button and marker visibility
+
+        :param checked: True if show point button is checked, False otherwise
+        :type checked: bool
+        """
+        self.marker.setVisible(checked)
+        if checked:
+            self.btn_show_point.setIcon(
+                QIcon(":images/themes/default/mActionShowAllLayers.svg")
+            )
+        else:
+            self.btn_show_point.setIcon(
+                QIcon(":images/themes/default/mActionShowAllLayersGray.svg")
+            )
+
+    def _canvas_maptool_set(self, tool: QgsMapTool) -> None:
+        """Update selection button when maptool is updated
+
+        :param tool: new maptool
+        :type tool: QgsMapTool
+        """
+        if tool != self._map_tool:
+            self._previous_map_tool = tool
+
+            self.btn_select_point.clicked.disconnect(self._selection_clicked)
+            self.btn_select_point.setChecked(False)
+            self.btn_select_point.clicked.connect(self._selection_clicked)
+
+            self.btn_show_point.setEnabled(True)
 
     def get_crs(self) -> QgsCoordinateReferenceSystem:
         """Get crs
@@ -180,12 +235,13 @@ class PointSelectionWidget(QWidget):
             iface.mapCanvas().setMapTool(self._map_tool)
             self._map_tool.activate()
 
-            self.marker.setVisible(True)
             self._update_marker_position()
+            self.btn_show_point.setChecked(True)
+            self.btn_show_point.setEnabled(False)
+            self._show_point_clicked(True)
         else:
+            self.btn_show_point.setEnabled(True)
             self._map_tool.deactivate()
-
-            self.marker.setVisible(False)
             # Restore previous map tool if available
             if self._previous_map_tool:
                 iface.mapCanvas().setMapTool(self._previous_map_tool)
