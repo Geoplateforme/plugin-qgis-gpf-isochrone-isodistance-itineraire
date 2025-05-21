@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional
 # PyQGIS
 from qgis.core import QgsApplication, QgsProcessingContext, QgsProject
 from qgis.PyQt import uic
-from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtGui import QColor, QIcon
 from qgis.PyQt.QtWidgets import QWidget
 
 from gpf_isochrone_isodistance_itineraire.__about__ import DIR_PLUGIN_ROOT
@@ -50,6 +50,9 @@ class ItineraryWidget(QWidget):
 
         self.btn_run.setIcon(QIcon(":images/themes/default/mActionStart.svg"))
         self.btn_run.clicked.connect(self._run_processing)
+
+        self.wdg_start_selection.set_marker_color(QColor("green"))
+        self.wdg_end_selection.set_marker_color(QColor("red"))
 
     def _run_processing(self) -> None:
         """Run processing for selected point and algorithm parameters"""
