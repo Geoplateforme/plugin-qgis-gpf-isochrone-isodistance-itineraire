@@ -600,14 +600,14 @@ class ItineraryProcessing(QgsProcessingAlgorithm):
                         and "message" in api_response_error["error"]
                     ):
                         err_msg += f"API error message: {api_response_error['error']['message']}"
-                feedback.reportError(
+
+                raise QgsProcessingException(
                     self.tr(
                         "Erreur lors de la requête pour calcul d'itinéraire : {}".format(
                             err_msg
                         )
                     )
                 )
-            return []
 
         data = json.loads(str(blocking_req.reply().content(), "UTF8"))
 
