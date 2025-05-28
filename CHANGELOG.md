@@ -16,6 +16,15 @@ Unreleased
 
 -->
 
+## 0.3.0 - 2025-05-28
+
+First version with itinerary compute from Geoplateforme.
+
+* fix(iti): raise error if API return error by @jmkerloch in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/24>
+* feat(gpf): add function create_gpf_plugins_actions to be called by geoplateforme plugin by @jmkerloch in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/21>
+* feat(itinerary): init processing by @jmkerloch in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/22>
+* feat(itinerary): init widget for processing use (no steps possible) by @jmkerloch in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/23>
+
 ## 0.2.0-beta1 - 2025-04-29
 
 * feat(getcap): check direction and cost type by @jmkerloch in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/6>
