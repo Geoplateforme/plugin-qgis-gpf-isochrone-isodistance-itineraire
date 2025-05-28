@@ -15,6 +15,7 @@ on:
     paths:
       - "**.py"
       - .github/workflows/tester.yml
+      - gpf_isochrone_isodistance_itineraire/metadata.txt
       - requirements/testing.txt
 
 env:
