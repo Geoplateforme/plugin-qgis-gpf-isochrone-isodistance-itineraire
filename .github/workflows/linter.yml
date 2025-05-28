@@ -12,6 +12,7 @@ on:
       - main
     paths:
       - "**.py"
+      - gpf_isochrone_isodistance_itineraire/metadata.txt
 
 env:
   PROJECT_FOLDER: "gpf_isochrone_isodistance_itineraire"
