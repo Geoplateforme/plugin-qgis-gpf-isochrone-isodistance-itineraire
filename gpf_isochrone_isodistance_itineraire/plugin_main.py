@@ -18,7 +18,7 @@ from qgis.core import (
 from qgis.gui import QgisInterface
 from qgis.PyQt.QtCore import QCoreApplication, QLocale, Qt, QTranslator, QUrl
 from qgis.PyQt.QtGui import QDesktopServices, QIcon
-from qgis.PyQt.QtWidgets import QAction, QDockWidget, QWidget
+from qgis.PyQt.QtWidgets import QAction, QDockWidget, QMenu, QWidget
 
 # project
 from gpf_isochrone_isodistance_itineraire.__about__ import (
@@ -31,6 +31,9 @@ from gpf_isochrone_isodistance_itineraire.gui.dlg_settings import PlgOptionsFact
 from gpf_isochrone_isodistance_itineraire.gui.wdg_iso_service import IsoServiceWidget
 from gpf_isochrone_isodistance_itineraire.processing.provider import (
     PluginGpfIsochroneIsodistanceItineraireProvider,
+)
+from gpf_isochrone_isodistance_itineraire.processing.utils import (
+    create_processing_action,
 )
 from gpf_isochrone_isodistance_itineraire.toolbelt import PlgLogger
 
@@ -53,6 +56,7 @@ class GpfIsochroneIsodistanceItinerairePlugin:
 
         self.docks = []
         self.actions = []
+        self.isoservice_widget_action = None
 
         # translation
         # initialize the locale
@@ -124,7 +128,11 @@ class GpfIsochroneIsodistanceItinerairePlugin:
         self.provider = PluginGpfIsochroneIsodistanceItineraireProvider()
         QgsApplication.processingRegistry().addProvider(self.provider)
 
-        self.iface.initializationCompleted.connect(self._init_widget)
+        # Need to init widget after initializationCompleted because we are defining default crs in IsoServiceWidget
+        # self.iface.initializationCompleted.connect(self._init_widget)
+        # Better to init widget in initGui because the signal may not be emitted when we install the plugin after QGIS start
+        # User will have to restart QGIS to get the widgets
+        self._init_widget()
 
     def _init_widget(self) -> None:
         """Init widget for plugin after QGIS initialization"""
@@ -141,13 +149,15 @@ class GpfIsochroneIsodistanceItinerairePlugin:
         )
 
         # Add dockwidget with action
-        self.add_dock_widget_and_action(
+        self.isoservice_widget_action = self.add_dock_widget_and_action(
             title=self.tr("Calcul isochrone / isodistance"),
             name="isochron_isodistance_compute",
             widget=isoservice_widget,
         )
 
-    def add_dock_widget_and_action(self, title: str, name: str, widget: QWidget):
+    def add_dock_widget_and_action(
+        self, title: str, name: str, widget: QWidget
+    ) -> QAction:
         """Add widget display as QDockWidget with an QAction in plugin toolbar
 
 
@@ -181,6 +191,54 @@ class GpfIsochroneIsodistanceItinerairePlugin:
 
         # Add action to toolbar
         self.iface.addToolBarIcon(action)
+
+        return action
+
+    def create_gpf_plugins_actions(self, parent: QWidget) -> list[QAction]:
+        """Create action to be inserted a Geoplateforme plugin
+
+        :param parent: parent widget
+        :type parent: QWidget
+        :return: list of action to add in Geoplateforme plugin
+        :rtype: list[QAction]
+        """
+        available_actions = []
+
+        # Isoservices actions
+        iso_service_action = QAction(
+            QIcon(str(DIR_PLUGIN_ROOT / "resources/images/logo_isoservices.svg")),
+            self.tr("Isoservices"),
+            parent,
+        )
+        iso_service_menu = QMenu()
+        if self.isoservice_widget_action:
+            iso_service_menu.addAction(self.isoservice_widget_action)
+
+        # Isoservices Processings
+        iso_service_action_processing = QAction(self.tr("Traitements"), parent)
+        iso_service_menu_processing = QMenu(parent)
+        iso_service_menu_processing.addAction(
+            create_processing_action(
+                "gpf_isochrone_isodistance_itineraire:isochrone_processing",
+                iso_service_menu_processing,
+            )
+        )
+        iso_service_menu_processing.addAction(
+            create_processing_action(
+                "gpf_isochrone_isodistance_itineraire:isodistance_processing",
+                iso_service_menu_processing,
+            )
+        )
+
+        iso_service_action_processing.setMenu(iso_service_menu_processing)
+
+        iso_service_menu.addAction(iso_service_action_processing)
+
+        iso_service_action.setMenu(iso_service_menu)
+
+        available_actions.append(iso_service_action)
+
+        return available_actions
 
     def tr(self, message: str) -> str:
         """Get the translation for a string using Qt translation API.

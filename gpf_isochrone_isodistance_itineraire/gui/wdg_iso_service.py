@@ -18,6 +18,8 @@ from qgis.PyQt import uic
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QWidget
 
+from gpf_isochrone_isodistance_itineraire.__about__ import DIR_PLUGIN_ROOT
+
 # project
 from gpf_isochrone_isodistance_itineraire.constants import ISOCHRONE_OPERATION
 from gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser import (
@@ -41,6 +43,10 @@ class IsoServiceWidget(QWidget):
         super().__init__(parent)
         ui_path = Path(__file__).resolve(True).parent / "wdg_iso_service.ui"
         uic.loadUi(ui_path, self)
+
+        self.setWindowIcon(
+            QIcon(str(DIR_PLUGIN_ROOT / "resources/images/logo_isoservices.svg"))
+        )
 
         # Get list of available resource from getcap
         available_resource = get_available_resources(operation=ISOCHRONE_OPERATION)
