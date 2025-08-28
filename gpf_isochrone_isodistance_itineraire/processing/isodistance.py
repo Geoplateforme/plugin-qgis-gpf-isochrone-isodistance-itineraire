@@ -8,6 +8,10 @@ from qgis.PyQt.QtCore import QCoreApplication
 from gpf_isochrone_isodistance_itineraire.processing.gpf_iso_service import (
     GpfIsoServiceProcessing,
 )
+from gpf_isochrone_isodistance_itineraire.processing.utils import (
+    get_short_string,
+    get_user_manual_url,
+)
 
 
 class IsodistanceProcessing(GpfIsoServiceProcessing):
@@ -32,8 +36,7 @@ class IsodistanceProcessing(GpfIsoServiceProcessing):
         :return: help url
         :rtype: str
         """
-        # TODO : add url for help
-        return ""
+        return get_user_manual_url(self.name())
 
     def shortHelpString(self) -> str:
         """Returns a localised short helper string for the algorithm. This string should provide a basic description about what the algorithm does and the parameters and outputs associated with it.
@@ -41,8 +44,7 @@ class IsodistanceProcessing(GpfIsoServiceProcessing):
         :return: short help string
         :rtype: str
         """
-        # TODO : add url for help
-        return ""
+        return get_short_string(self.name(), self.displayName())
 
     def name(self) -> str:
         """Returns the algorithm name, used for identifying the algorithm.
