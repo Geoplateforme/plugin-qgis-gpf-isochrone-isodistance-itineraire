@@ -12,11 +12,6 @@ on:
   pull_request:
     branches:
       - main
-    paths:
-      - "**.py"
-      - .github/workflows/tester.yml
-      - gpf_isochrone_isodistance_itineraire/metadata.txt
-      - requirements/testing.txt
 
 env:
   PROJECT_FOLDER: "gpf_isochrone_isodistance_itineraire"
