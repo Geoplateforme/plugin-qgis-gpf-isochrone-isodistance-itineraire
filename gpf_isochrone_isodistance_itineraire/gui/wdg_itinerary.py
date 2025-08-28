@@ -37,7 +37,7 @@ class ItineraryWidget(QWidget):
         uic.loadUi(ui_path, self)
 
         self.setWindowIcon(
-            QIcon(str(DIR_PLUGIN_ROOT / "resources/images/logo_isoservices.svg"))
+            QIcon(str(DIR_PLUGIN_ROOT / "resources/images/logo_itineraire.png"))
         )
 
         # Get list of available resource from getcap

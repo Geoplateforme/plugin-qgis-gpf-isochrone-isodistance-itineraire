@@ -231,7 +231,7 @@ class GpfIsochroneIsodistanceItinerairePlugin:
 
         # Isoservices actions
         iso_service_action = QAction(
-            QIcon(str(DIR_PLUGIN_ROOT / "resources/images/logo_isoservices.svg")),
+            QIcon(str(DIR_PLUGIN_ROOT / "resources/images/logo_isochrone.png")),
             self.tr("Isoservices"),
             parent,
         )
@@ -265,7 +265,7 @@ class GpfIsochroneIsodistanceItinerairePlugin:
 
         # Itinerary actions
         itinerary_action = QAction(
-            QIcon(str(DIR_PLUGIN_ROOT / "resources/images/logo_isoservices.svg")),
+            QIcon(str(DIR_PLUGIN_ROOT / "resources/images/logo_itineraire.png")),
             self.tr("Itineraire"),
             parent,
         )
