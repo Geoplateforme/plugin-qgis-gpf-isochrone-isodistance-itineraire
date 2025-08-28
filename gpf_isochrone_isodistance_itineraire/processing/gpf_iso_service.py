@@ -637,7 +637,7 @@ class GpfIsoServiceProcessing(QgsProcessingFeatureBasedAlgorithm):
             feedback.pushCommandInfo(f"request : {request}")
 
         blocking_req = QgsBlockingNetworkRequest()
-        qreq = QNetworkRequest(url=QUrl(request))
+        qreq = QNetworkRequest(QUrl(request))
         error_code = blocking_req.get(qreq, forceRefresh=True, feedback=feedback)
 
         # Add feedback in case of error

@@ -446,7 +446,7 @@ def download_getcapabilities(
     url = f"{url_service}/getcapabilities"
 
     blocking_req = QgsBlockingNetworkRequest()
-    qreq = QNetworkRequest(url=QUrl(url))
+    qreq = QNetworkRequest(QUrl(url))
     error_code = blocking_req.get(qreq, forceRefresh=forceRefresh)
 
     # Add feedback in case of error
