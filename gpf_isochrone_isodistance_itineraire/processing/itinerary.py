@@ -37,6 +37,10 @@ from gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser impor
     route_available_for_resource,
     route_available_for_service,
 )
+from gpf_isochrone_isodistance_itineraire.processing.utils import (
+    get_short_string,
+    get_user_manual_url,
+)
 from gpf_isochrone_isodistance_itineraire.toolbelt import PlgOptionsManager
 
 
@@ -84,8 +88,7 @@ class ItineraryProcessing(QgsProcessingAlgorithm):
         :return: help url
         :rtype: str
         """
-        # TODO : add url for help
-        return ""
+        return get_user_manual_url(self.name())
 
     def shortHelpString(self) -> str:
         """Returns a localised short helper string for the algorithm. This string should provide a basic description about what the algorithm does and the parameters and outputs associated with it.
@@ -93,8 +96,7 @@ class ItineraryProcessing(QgsProcessingAlgorithm):
         :return: short help string
         :rtype: str
         """
-        # TODO : add url for help
-        return ""
+        return get_short_string(self.name(), self.displayName())
 
     def initAlgorithm(self, config=None):
         plg_settings = PlgOptionsManager().get_plg_settings()
