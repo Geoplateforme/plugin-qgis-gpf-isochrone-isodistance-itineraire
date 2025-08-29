@@ -53,12 +53,20 @@ class GpfIsochroneIsodistanceItinerairePlugin:
         """
         self.iface = iface
         self.provider = None
+        self.options_factory = None
         self.log = PlgLogger().log
 
         self.docks = []
         self.actions = []
+
+        self.action_help = None
+        self.action_settings = None
+        self.action_isoservice = None
+        self.action_itinerary = None
         self.isoservice_widget_action = None
         self.itinerary_widget_action = None
+
+        self.action_help_plugin_menu_documentation = None
 
         # translation
         # initialize the locale
@@ -180,6 +188,12 @@ class GpfIsochroneIsodistanceItinerairePlugin:
             widget=itinerary_widget,
         )
 
+        self.action_isoservice = self._create_isoservice_action(self.iface.mainWindow())
+        self.iface.addPluginToMenu(__title__, self.action_isoservice)
+
+        self.action_itinerary = self._create_itinerary_action(self.iface.mainWindow())
+        self.iface.addPluginToMenu(__title__, self.action_itinerary)
+
     def add_dock_widget_and_action(
         self, title: str, name: str, widget: QWidget
     ) -> QAction:
@@ -219,16 +233,14 @@ class GpfIsochroneIsodistanceItinerairePlugin:
 
         return action
 
-    def create_gpf_plugins_actions(self, parent: QWidget) -> list[QAction]:
-        """Create action to be inserted a Geoplateforme plugin
+    def _create_isoservice_action(self, parent: QWidget) -> QAction:
+        """Create action for isoservice
 
         :param parent: parent widget
         :type parent: QWidget
-        :return: list of action to add in Geoplateforme plugin
-        :rtype: list[QAction]
+        :return: action for isoservice
+        :rtype: QAction
         """
-        available_actions = []
-
         # Isoservices actions
         iso_service_action = QAction(
             QIcon(str(DIR_PLUGIN_ROOT / "resources/images/logo_isochrone.png")),
@@ -260,9 +272,16 @@ class GpfIsochroneIsodistanceItinerairePlugin:
         iso_service_menu.addAction(iso_service_action_processing)
 
         iso_service_action.setMenu(iso_service_menu)
+        return iso_service_action
 
-        available_actions.append(iso_service_action)
+    def _create_itinerary_action(self, parent: QWidget) -> QAction:
+        """Create action for itinerary
 
+        :param parent: parent widget
+        :type parent: QWidget
+        :return: action for itinerary
+        :rtype: QAction
+        """
         # Itinerary actions
         itinerary_action = QAction(
             QIcon(str(DIR_PLUGIN_ROOT / "resources/images/logo_itineraire.png")),
@@ -289,7 +308,19 @@ class GpfIsochroneIsodistanceItinerairePlugin:
 
         itinerary_action.setMenu(itinerary_menu)
 
-        available_actions.append(itinerary_action)
+        return itinerary_action
+
+    def create_gpf_plugins_actions(self, parent: QWidget) -> list[QAction]:
+        """Create action to be inserted a Geoplateforme plugin
+
+        :param parent: parent widget
+        :type parent: QWidget
+        :return: list of action to add in Geoplateforme plugin
+        :rtype: list[QAction]
+        """
+        available_actions = []
+        available_actions.append(self._create_isoservice_action(parent))
+        available_actions.append(self._create_itinerary_action(parent))
 
         return available_actions
 
@@ -317,6 +348,10 @@ class GpfIsochroneIsodistanceItinerairePlugin:
         # -- Clean up menu
         self.iface.removePluginMenu(__title__, self.action_help)
         self.iface.removePluginMenu(__title__, self.action_settings)
+        if self.action_isoservice:
+            self.iface.removePluginMenu(__title__, self.action_isoservice)
+        if self.action_itinerary:
+            self.iface.removePluginMenu(__title__, self.action_itinerary)
 
         # -- Clean up preferences panel in QGIS settings
         self.iface.unregisterOptionsWidgetFactory(self.options_factory)
