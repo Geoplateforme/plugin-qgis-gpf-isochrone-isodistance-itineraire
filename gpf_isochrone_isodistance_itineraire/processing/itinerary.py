@@ -504,6 +504,14 @@ class ItineraryProcessing(QgsProcessingAlgorithm):
 
             intermediates_str_list = []
             for feature in intermediates_layer.getFeatures():
+                if feature.geometry().isNull():
+                    feedback.pushWarning(
+                        self.tr(
+                            "Point intermédiaire avec géométrie nulle. Le point n'est pas utilisé."
+                        )
+                    )
+                    continue
+
                 step = feature.geometry().asPoint()
                 if not self._check_point(
                     step, request_crs, id_resource, url_service, context, feedback

@@ -553,6 +553,16 @@ class GpfIsoServiceProcessing(QgsProcessingFeatureBasedAlgorithm):
 
         geometry = feature.geometry()
 
+        if geometry.isNull():
+            feedback.pushWarning(
+                self.tr(
+                    "La géométrie n'est pas définie pour la feature {}. Le calcul n'est pas effectué".format(
+                        feature.id(),
+                    )
+                )
+            )
+            return []
+
         expression_ctx = context.expressionContext()
         expression_ctx.setFeature(feature)
 
