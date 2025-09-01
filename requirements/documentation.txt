@@ -1,7 +1,8 @@
 # Documentation (for devs)
 # -----------------------
-
 myst-parser[linkify]>=2
 sphinx-autobuild>=2024
-sphinx-copybutton>=0.5,<1
-sphinx-rtd-theme>=2
+sphinx-autodoc-typehints>=1.25
+sphinx-book-theme>1
+sphinx-copybutton>=0.5
+sphinx-sitemap>=2.5.1
