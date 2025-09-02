@@ -124,6 +124,37 @@ def get_available_resources(
     return []
 
 
+def get_available_resources_dict(
+    url_service: Optional[str] = None,
+    operation: Optional[str] = None,
+) -> List[dict]:
+    """Get list of available resources dict for a service.
+    Optional operation filter can be used to get only resource with specific operation
+
+    :param url_service: url for service, defaults to None (plugin settings param is used)
+    :type url_service: Optional[str], optional
+    :param operation: operation filter for resource, defaults to None
+    :type operation: Optional[str], optional
+    :return: list of available resources dict
+    :rtype: List[dict]
+    """
+    data = getcapabilities_json(url_service)
+    if data and "resources" in data:
+        # If no operation filter return all resources
+        if operation is None:
+            return [res["id"] for res in data["resources"]]
+
+        # Parse resources to get available operation and check filter
+        result = []
+        for res in data["resources"]:
+            available_operation = [op["id"] for op in res["availableOperations"]]
+            if operation in available_operation:
+                result.append(res)
+
+        return result
+    return []
+
+
 def get_resource_operation_parameters(
     id_resource: str, operation: str, url_service: Optional[str] = None
 ) -> Optional[List[Any]]:

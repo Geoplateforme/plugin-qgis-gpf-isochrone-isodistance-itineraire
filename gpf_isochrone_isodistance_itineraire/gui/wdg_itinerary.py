@@ -7,6 +7,7 @@ from typing import Any, Dict, Optional
 # PyQGIS
 from qgis.core import QgsApplication, QgsProcessingContext, QgsProject
 from qgis.PyQt import uic
+from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor, QIcon
 from qgis.PyQt.QtWidgets import QWidget
 
@@ -15,7 +16,7 @@ from gpf_isochrone_isodistance_itineraire.__about__ import DIR_PLUGIN_ROOT
 # project
 from gpf_isochrone_isodistance_itineraire.constants import ROUTE_OPERATION
 from gpf_isochrone_isodistance_itineraire.processing.get_capabities_parser import (
-    get_available_resources,
+    get_available_resources_dict,
     get_resource_optimization,
     get_resource_profiles,
 )
@@ -41,9 +42,18 @@ class ItineraryWidget(QWidget):
         )
 
         # Get list of available resource from getcap
-        available_resource = get_available_resources(operation=ROUTE_OPERATION)
+        available_resource_dict = get_available_resources_dict(
+            operation=ROUTE_OPERATION
+        )
         self.cbx_resource.clear()
-        self.cbx_resource.addItems(available_resource)
+        for available_resource in available_resource_dict:
+            self.cbx_resource.addItem(available_resource["id"])
+            if "description" in available_resource:
+                self.cbx_resource.setItemData(
+                    self.cbx_resource.count() - 1,
+                    available_resource["description"],
+                    Qt.ItemDataRole.ToolTipRole,
+                )
 
         self.cbx_resource.currentIndexChanged.connect(self._resource_changed)
         self._resource_changed()
@@ -97,6 +107,14 @@ class ItineraryWidget(QWidget):
     def _resource_changed(self) -> None:
         """Update available profil and direction for selected resource"""
         resource = self.cbx_resource.currentText()
+
+        tooltip = self.cbx_resource.itemData(
+            self.cbx_resource.currentIndex(), Qt.ItemDataRole.ToolTipRole
+        )
+        if tooltip:
+            self.lbl_resource.setToolTip(tooltip)
+        else:
+            self.lbl_resource.setToolTip("")
 
         # Update profiles
         profiles = get_resource_profiles(
