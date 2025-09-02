@@ -1,19 +1,21 @@
 # Installation
 
-## Stable version (recomended)
+## Version stable (recommandée)
 
-This plugin is published on the official QGIS plugins repository: <https://plugins.qgis.org/plugins/gpf_isochrone_isodistance_itineraire/>.
+Le plugin est publié sur le dépôt officiel des extensions de QGIS : <https://plugins.qgis.org/plugins/gpf_isochrone_isodistance_itineraire/>.
 
-## Beta versions released
+## Versions expérimentales
 
-Enable experimental extensions in the QGIS plugins manager settings panel.
+Des versions intermédiaires (alpha, beta...) sont parfois publiées sur le dépôt officiel dans le canal expérimental.
 
-## Earlier development version
+Pour y accéder, il suffit d'activer les extensions expérimentales dans les préférences du gestionnaire d'extensions de QGIS.
 
-If you define yourself as early adopter or a tester and can't wait for the release, the plugin is automatically packaged for each commit to main, so you can use this address as repository URL in your QGIS extensions manager settings:
+## Version en développement
 
-```url
+Si vous vous considérez comme un *early adopter*, un testeur ou que vous ne pouvez attendre qu'une version soit publiée (même dans le canal expérimental !), vous pouvez utiliser la version automatiquement packagée pour chaque commit poussé sur la branche principale.
+
+Pour cela, il faut ajouter cette URL dans les dépôts référencés dans le gestionnaire d'extensions de QGIS :
+
+```html
 https://geoplateforme.github.io/plugin-qgis-gpf-isochrone-isodistance-itineraire/plugins.xml
 ```
-
-Be careful, this version can be unstable.

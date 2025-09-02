@@ -11,9 +11,6 @@ from os import environ, path
 
 sys.path.insert(0, path.abspath(".."))  # move into project package
 
-# 3rd party
-import sphinx_rtd_theme  # noqa: F401 theme of Read the Docs
-
 # Package
 from gpf_isochrone_isodistance_itineraire import __about__
 
@@ -38,11 +35,9 @@ extensions = [
     "sphinx.ext.extlinks",
     "sphinx.ext.githubpages",
     "sphinx.ext.intersphinx",
-    "sphinx.ext.viewcode",
     # 3rd party
     "myst_parser",
     "sphinx_copybutton",
-    "sphinx_rtd_theme",
 ]
 
 
@@ -66,6 +61,7 @@ exclude_patterns = [
     "ext_libs",
     "tests",
     "demo",
+    "wiki",
 ]
 
 # The name of the Pygments (syntax highlighting) style to use.
@@ -78,21 +74,18 @@ pygments_style = "sphinx"
 
 html_favicon = str(__about__.__icon_path__)
 html_logo = str(__about__.__icon_path__)
-# uncomment next line if you store some statics which are not directly linked into the markdown/RST files
-# html_static_path = ["static/include_additional"]
-html_theme = "sphinx_rtd_theme"
+html_static_path = ["static/additionnal_files"]
+html_theme = "sphinx_book_theme"
 html_theme_options = {
-    "display_version": True,
-    "logo_only": False,
-    "prev_next_buttons_location": "both",
-    "style_external_links": True,
-    "style_nav_header_background": "SteelBlue",
-    # Toc options
-    "collapse_navigation": True,
-    "includehidden": False,
-    "navigation_depth": 4,
-    "sticky_navigation": False,
-    "titles_only": False,
+    "home_page_in_toc": True,
+    "path_to_docs": "docs",
+    "repository_branch": "main",
+    "repository_url": __about__.__uri_repository__,
+    "show_toc_level": 3,
+    "use_edit_page_button": True,
+    "use_fullscreen_button": False,
+    "use_issues_button": True,
+    "use_repository_button": True,
 }
 
 # -- EXTENSIONS --------------------------------------------------------
@@ -100,19 +93,17 @@ html_theme_options = {
 # Configuration for intersphinx (refer to others docs).
 intersphinx_mapping = {
     "PyQt5": ("https://www.riverbankcomputing.com/static/Docs/PyQt5", None),
+    "PyQt6": ("https://www.riverbankcomputing.com/static/Docs/PyQt6/", None),
     "python": ("https://docs.python.org/3/", None),
     "qgis": ("https://qgis.org/pyqgis/master/", None),
 }
 
 # MyST Parser
 myst_enable_extensions = [
-    "amsmath",
     "colon_fence",
-    "deflist",
-    "dollarmath",
+    "html_admonition",
     "html_image",
     "linkify",
-    "replacements",
     "smartquotes",
     "substitution",
 ]
