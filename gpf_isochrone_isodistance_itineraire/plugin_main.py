@@ -247,7 +247,7 @@ class GpfIsochroneIsodistanceItinerairePlugin:
             self.tr("Isoservices"),
             parent,
         )
-        iso_service_menu = QMenu()
+        iso_service_menu = QMenu(parent)
         if self.isoservice_widget_action:
             iso_service_menu.addAction(self.isoservice_widget_action)
 
@@ -288,7 +288,7 @@ class GpfIsochroneIsodistanceItinerairePlugin:
             self.tr("Itineraire"),
             parent,
         )
-        itinerary_menu = QMenu()
+        itinerary_menu = QMenu(parent)
         if self.itinerary_widget_action:
             itinerary_menu.addAction(self.itinerary_widget_action)
 
