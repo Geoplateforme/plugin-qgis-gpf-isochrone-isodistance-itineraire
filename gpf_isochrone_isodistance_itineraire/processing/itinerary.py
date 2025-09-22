@@ -366,6 +366,11 @@ class ItineraryProcessing(QgsProcessingAlgorithm):
         :return: request CRS, None if no CRS available for resource
         :rtype: Optional[QgsCoordinateReferenceSystem]
         """
+        # There is an issue in Road2 for some sources if the CRS is not EPSG:4326
+        # See : https://github.com/IGNF/road2/issues/119 and https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/issues/37
+        # We need to force use of 4326 for request CRS
+        return QgsCoordinateReferenceSystem("EPSG:4326")
+
         # Check if input crs is compatible
         supported_crs = get_resource_crs(
             id_resource=id_resource,
@@ -403,6 +408,32 @@ class ItineraryProcessing(QgsProcessingAlgorithm):
                 )
         return request_crs
 
+    @staticmethod
+    def get_output_fields() -> QgsFields:
+        """Return fields for output layer
+
+        :return: field for output layer
+        :rtype: QgsFields
+        """
+        output_fields = QgsFields()
+        output_fields.append(QgsField(name="start_x", type=QMetaType.Type.Double))
+        output_fields.append(QgsField(name="start_y", type=QMetaType.Type.Double))
+        output_fields.append(QgsField(name="end_x", type=QMetaType.Type.Double))
+        output_fields.append(QgsField(name="end_y", type=QMetaType.Type.Double))
+        output_fields.append(
+            QgsField(name="intermediates", type=QMetaType.Type.QString)
+        )
+        output_fields.append(QgsField(name="request", type=QMetaType.Type.QString))
+        output_fields.append(QgsField(name="id_resource", type=QMetaType.Type.QString))
+        output_fields.append(QgsField(name="profile", type=QMetaType.Type.QString))
+        output_fields.append(QgsField(name="optimization", type=QMetaType.Type.QString))
+        output_fields.append(
+            QgsField(name="additional_url_param", type=QMetaType.Type.QString)
+        )
+        output_fields.append(QgsField(name="distance", type=QMetaType.Type.Double))
+        output_fields.append(QgsField(name="duration", type=QMetaType.Type.Double))
+        return output_fields
+
     def processAlgorithm(self, parameters, context, feedback):
         url_service = self.parameterAsString(parameters, self.URL_SERVICE, context)
         id_resource = self.parameterAsString(parameters, self.ID_RESOURCE, context)
@@ -429,26 +460,7 @@ class ItineraryProcessing(QgsProcessingAlgorithm):
                     )
                 )
             )
-
-        # Define field for output feature
-        output_fields = QgsFields()
-        output_fields.append(QgsField(name="start_x", type=QMetaType.Type.Double))
-        output_fields.append(QgsField(name="start_y", type=QMetaType.Type.Double))
-        output_fields.append(QgsField(name="end_x", type=QMetaType.Type.Double))
-        output_fields.append(QgsField(name="end_y", type=QMetaType.Type.Double))
-        output_fields.append(
-            QgsField(name="intermediates", type=QMetaType.Type.QString)
-        )
-        output_fields.append(QgsField(name="request", type=QMetaType.Type.QString))
-        output_fields.append(QgsField(name="id_resource", type=QMetaType.Type.QString))
-        output_fields.append(QgsField(name="profile", type=QMetaType.Type.QString))
-        output_fields.append(QgsField(name="optimization", type=QMetaType.Type.QString))
-        output_fields.append(
-            QgsField(name="additional_url_param", type=QMetaType.Type.QString)
-        )
-        output_fields.append(QgsField(name="distance", type=QMetaType.Type.Double))
-        output_fields.append(QgsField(name="duration", type=QMetaType.Type.Double))
-
+        output_fields = ItineraryProcessing.get_output_fields()
         # Get sink for output feature
         (sink_itinerary, sink_itinerary_id) = self.parameterAsSink(
             parameters,
@@ -491,8 +503,8 @@ class ItineraryProcessing(QgsProcessingAlgorithm):
                 request_crs,
                 context.transformContext(),
             )
-            start.transform(transform)
-            end.transform(transform)
+            start = transform.transform(start)
+            end = transform.transform(end)
 
         # Create request
         request = f"{url_service}/itineraire?start={start.x()},{start.y()}&end={end.x()},{end.y()}"
@@ -513,6 +525,13 @@ class ItineraryProcessing(QgsProcessingAlgorithm):
                     continue
 
                 step = feature.geometry().asPoint()
+                if intermediates_crs != request_crs:
+                    intermediate_transform = QgsCoordinateTransform(
+                        intermediates_crs,
+                        request_crs,
+                        context.transformContext(),
+                    )
+                    step = intermediate_transform.transform(step)
                 if not self._check_point(
                     step, request_crs, id_resource, url_service, context, feedback
                 ):
@@ -522,15 +541,8 @@ class ItineraryProcessing(QgsProcessingAlgorithm):
                         )
                     )
                 else:
-                    if intermediates_crs != request_crs:
-                        transform = QgsCoordinateTransform(
-                            intermediates_crs,
-                            request_crs,
-                            context.transformContext(),
-                        )
-                        step.transform(transform)
-
                     intermediates_str_list.append(f"{step.x()},{step.y()}")
+
             intermediates_str = "|".join(intermediates_str_list)
             request += f"&intermediates={intermediates_str}"
 
@@ -619,33 +631,41 @@ class ItineraryProcessing(QgsProcessingAlgorithm):
                     )
                 )
 
-        data = json.loads(str(blocking_req.reply().content(), "UTF8"))
+        res_str = str(blocking_req.reply().content(), "UTF8")
+        if res_str:
+            data = json.loads(res_str)
 
-        output_geom = QgsGeometry.fromWkt(data["geometry"])
-        # Apply inverse transformation if input data was converted
-        if transform:
-            output_geom.transform(transform, direction=Qgis.TransformDirection.Reverse)
+            output_geom = QgsGeometry.fromWkt(data["geometry"])
+            # Apply inverse transformation if input data was converted
+            if transform:
+                output_geom.transform(
+                    transform, direction=Qgis.TransformDirection.Reverse
+                )
 
-        duration = data["duration"]
-        distance = data["distance"]
+            duration = data["duration"]
+            distance = data["distance"]
 
-        f = QgsFeature()
-        f.setGeometry(output_geom)
-        f.setFields(output_fields)
+            f = QgsFeature()
+            f.setGeometry(output_geom)
+            f.setFields(output_fields)
 
-        f.setAttribute("start_x", start.x())
-        f.setAttribute("start_y", start.y())
-        f.setAttribute("end_x", end.x())
-        f.setAttribute("end_y", end.y())
-        f.setAttribute("intermediates", intermediates_str)
-        f.setAttribute("request", request)
-        f.setAttribute("id_resource", id_resource)
-        f.setAttribute("profile", profile)
-        f.setAttribute("optimization", optimization)
-        f.setAttribute("distance", distance)
-        f.setAttribute("duration", duration)
-        f.setAttribute("additional_url_param", additional_url_param)
+            f.setAttribute("start_x", start.x())
+            f.setAttribute("start_y", start.y())
+            f.setAttribute("end_x", end.x())
+            f.setAttribute("end_y", end.y())
+            f.setAttribute("intermediates", intermediates_str)
+            f.setAttribute("request", request)
+            f.setAttribute("id_resource", id_resource)
+            f.setAttribute("profile", profile)
+            f.setAttribute("optimization", optimization)
+            f.setAttribute("distance", distance)
+            f.setAttribute("duration", duration)
+            f.setAttribute("additional_url_param", additional_url_param)
 
-        sink_itinerary.addFeature(feature=f, flags=QgsFeatureSink.Flag.FastInsert)
+            sink_itinerary.addFeature(feature=f, flags=QgsFeatureSink.Flag.FastInsert)
+        else:
+            raise QgsProcessingException(
+                self.tr("Réponse vide pour la requête de calcul d'itinéraire.")
+            )
 
         return {self.OUTPUT: sink_itinerary_id}
