@@ -1,20 +1,20 @@
 # standard
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 # PyQGIS
 from qgis.core import (
     Qgis,
     QgsApplication,
+    QgsCoordinateReferenceSystem,
     QgsCoordinateTransform,
     QgsFeature,
     QgsField,
+    QgsFields,
     QgsProcessing,
-    QgsProcessingAlgorithm,
     QgsProcessingContext,
-    QgsProcessingException,
+    QgsProcessingFeatureBasedAlgorithm,
     QgsProcessingFeedback,
     QgsProcessingParameterCrs,
-    QgsProcessingParameterFeatureSink,
     QgsProcessingParameterField,
     QgsProcessingParameterString,
     QgsProcessingParameterVectorLayer,
@@ -34,7 +34,7 @@ from gpf_isochrone_isodistance_itineraire.processing.utils import (
 from gpf_isochrone_isodistance_itineraire.toolbelt import PlgOptionsManager
 
 
-class BatchItineraryAlgorithm(QgsProcessingAlgorithm):
+class BatchItineraryAlgorithm(QgsProcessingFeatureBasedAlgorithm):
     URL_SERVICE = "URL_SERVICE"
 
     STARTS_LAYER = "STARTS_LAYER"
@@ -43,8 +43,6 @@ class BatchItineraryAlgorithm(QgsProcessingAlgorithm):
     ENDS_LAYER_ID_FIELD = "ENDS_LAYER_ID_FIELD"
     INTERMEDIATES_LAYER = "INTERMEDIATES_LAYER"
     INTERMEDIATES_LAYER_ID_FIELD = "INTERMEDIATES_LAYER_ID_FIELD"
-
-    BATCH_PARAMETERS_LAYER = "BATCH_PARAMETERS_LAYER"
 
     ID_START_FIELD = "ID_START_FIELD"
     ID_END_FIELD = "ID_END_FIELD"
@@ -56,7 +54,34 @@ class BatchItineraryAlgorithm(QgsProcessingAlgorithm):
 
     ADDITIONAL_URL_PARAM_FIELD = "ADDITIONAL_URL_PARAM_FIELD"
     CRS = "CRS"
-    OUTPUT = "OUTPUT"
+
+    def __init__(self) -> None:
+        """Processing for batch itinerary compute"""
+        super().__init__()
+        self.url_service = ""
+
+        self.param_id_start_field = ""
+        self.param_id_end_field = ""
+        self.param_id_intermediates_field = ""
+        self.param_ressource_field = ""
+        self.param_profil_field = ""
+        self.param_optimization_field = ""
+        self.param_additionnal_url_param_field = ""
+
+        self.starts_layer = None
+        self.ends_layer = None
+        self.intermediates_layer = None
+
+        self.id_start_field = ""
+        self.id_end_field = ""
+        self.id_intermediate_field = ""
+
+        self.output_crs = None
+
+        self.start_transform = None
+        self.end_transform = None
+        self.result_transform = None
+        self.alg = None
 
     def tr(self, message: str) -> str:
         """Get the translation for a string using Qt translation API.
@@ -79,7 +104,7 @@ class BatchItineraryAlgorithm(QgsProcessingAlgorithm):
         return self.tr("Batch itinerary")
 
     def group(self):
-        return self.tr("Livraison")
+        return self.tr("")
 
     def groupId(self):
         return ""
@@ -90,7 +115,7 @@ class BatchItineraryAlgorithm(QgsProcessingAlgorithm):
     def shortHelpString(self):
         return get_short_string(self.name(), self.displayName())
 
-    def initAlgorithm(self, config=None):
+    def initParameters(self, configuration: Dict[str, Any] = {}) -> None:
         plg_settings = PlgOptionsManager().get_plg_settings()
 
         self.addParameter(
@@ -98,6 +123,69 @@ class BatchItineraryAlgorithm(QgsProcessingAlgorithm):
                 name=self.URL_SERVICE,
                 description=self.tr("Url service"),
                 defaultValue=plg_settings.url_service,
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterField(
+                name=self.ID_START_FIELD,
+                description=self.tr("Champ départ"),
+                parentLayerParameterName="INPUT",
+                optional=False,
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterField(
+                name=self.ID_END_FIELD,
+                description=self.tr("Champ arrivée"),
+                parentLayerParameterName="INPUT",
+                optional=False,
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterField(
+                name=self.ID_INTERMEDIATES_FIELD,
+                description=self.tr("Champ étapes"),
+                parentLayerParameterName="INPUT",
+                optional=True,
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterField(
+                name=self.RESSOURCE_FIELD,
+                description=self.tr("Champ ressource"),
+                parentLayerParameterName="INPUT",
+                optional=False,
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterField(
+                name=self.PROFIL_FIELD,
+                description=self.tr("Champ profil"),
+                parentLayerParameterName="INPUT",
+                optional=False,
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterField(
+                name=self.OPTIMIZATION_FIELD,
+                description=self.tr("Champ optimisation"),
+                parentLayerParameterName="INPUT",
+                optional=False,
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterField(
+                name=self.ADDITIONAL_URL_PARAM_FIELD,
+                description=self.tr("Champ paramètres additionnels"),
+                parentLayerParameterName="INPUT",
+                optional=True,
             )
         )
 
@@ -154,77 +242,6 @@ class BatchItineraryAlgorithm(QgsProcessingAlgorithm):
                 optional=True,
             )
         )
-        self.addParameter(
-            QgsProcessingParameterVectorLayer(
-                name=self.BATCH_PARAMETERS_LAYER,
-                description=self.tr("Paramètres calcul en lot"),
-                types=[QgsProcessing.SourceType.TypeVector],
-                optional=False,
-            )
-        )
-
-        self.addParameter(
-            QgsProcessingParameterField(
-                name=self.ID_START_FIELD,
-                description=self.tr("Champ paramètre pour les départs"),
-                parentLayerParameterName=self.BATCH_PARAMETERS_LAYER,
-                optional=False,
-            )
-        )
-
-        self.addParameter(
-            QgsProcessingParameterField(
-                name=self.ID_END_FIELD,
-                description=self.tr("Champ paramètre pour les arrivées"),
-                parentLayerParameterName=self.BATCH_PARAMETERS_LAYER,
-                optional=False,
-            )
-        )
-
-        self.addParameter(
-            QgsProcessingParameterField(
-                name=self.ID_INTERMEDIATES_FIELD,
-                description=self.tr("Champ paramètre pour les étapes"),
-                parentLayerParameterName=self.BATCH_PARAMETERS_LAYER,
-                optional=True,
-            )
-        )
-
-        self.addParameter(
-            QgsProcessingParameterField(
-                name=self.RESSOURCE_FIELD,
-                description=self.tr("champ paramètre pour les ressources"),
-                parentLayerParameterName=self.BATCH_PARAMETERS_LAYER,
-                optional=False,
-            )
-        )
-
-        self.addParameter(
-            QgsProcessingParameterField(
-                name=self.PROFIL_FIELD,
-                description=self.tr("champ paramètre pour les profils"),
-                parentLayerParameterName=self.BATCH_PARAMETERS_LAYER,
-                optional=False,
-            )
-        )
-
-        self.addParameter(
-            QgsProcessingParameterField(
-                name=self.OPTIMIZATION_FIELD,
-                description=self.tr("champ paramètre pour l'optimisation"),
-                parentLayerParameterName=self.BATCH_PARAMETERS_LAYER,
-                optional=False,
-            )
-        )
-
-        self.addParameter(
-            QgsProcessingParameterField(
-                name=self.ADDITIONAL_URL_PARAM_FIELD,
-                description=self.tr("champ paramètre pour les paramètres additionnels"),
-                parentLayerParameterName=self.BATCH_PARAMETERS_LAYER,
-                optional=True,
-            )
-        )
 
         self.addParameter(
             QgsProcessingParameterCrs(
@@ -234,256 +251,302 @@ class BatchItineraryAlgorithm(QgsProcessingAlgorithm):
             )
         )
 
-        self.addParameter(
-            QgsProcessingParameterFeatureSink(
-                name=self.OUTPUT,
-                description=self.tr("Itinéraire"),
-                type=QgsProcessing.SourceType.VectorLine,
-            )
-        )
-
-    def processAlgorithm(
+    def prepareAlgorithm(
         self,
         parameters: Dict[str, Any],
         context: QgsProcessingContext,
         feedback: Optional[QgsProcessingFeedback],
-    ) -> Dict[str, Any]:
-        """Runs the algorithm using the specified parameters.
+    ) -> bool:
+        """Prepares the algorithm to run using the specified parameters.
 
-        :param parameters: algorithm parameters
+        :param parameters: input parameter
         :type parameters: Dict[str, Any]
         :param context: processing context
         :type context: QgsProcessingContext
         :param feedback: processing feedback
         :type feedback: Optional[QgsProcessingFeedback]
-        :raises QgsProcessingException: Multiple crs for input layers
-        :raises QgsProcessingException: Error in upload creation
-        :return: algorithm results
-        :rtype: Dict[str, Any]
+        :return: True if the parameter are valid, False otherwise
+        :rtype: bool
         """
+        self.url_service = self.parameterAsString(parameters, self.URL_SERVICE, context)
 
-        url_service = self.parameterAsString(parameters, self.URL_SERVICE, context)
-        starts_layer = self.parameterAsVectorLayer(
+        self.param_id_start_field = self.parameterAsString(
+            parameters, self.ID_START_FIELD, context
+        )
+
+        self.param_id_end_field = self.parameterAsString(
+            parameters, self.ID_END_FIELD, context
+        )
+        self.param_id_intermediates_field = self.parameterAsString(
+            parameters, self.ID_INTERMEDIATES_FIELD, context
+        )
+        self.param_ressource_field = self.parameterAsString(
+            parameters, self.RESSOURCE_FIELD, context
+        )
+        self.param_profil_field = self.parameterAsString(
+            parameters, self.PROFIL_FIELD, context
+        )
+        self.param_optimization_field = self.parameterAsString(
+            parameters, self.OPTIMIZATION_FIELD, context
+        )
+        self.param_additionnal_url_param_field = self.parameterAsString(
+            parameters, self.ADDITIONAL_URL_PARAM_FIELD, context
+        )
+
+        self.starts_layer = self.parameterAsVectorLayer(
             parameters, self.STARTS_LAYER, context
         )
-        ends_layer = self.parameterAsVectorLayer(parameters, self.ENDS_LAYER, context)
+        self.ends_layer = self.parameterAsVectorLayer(
+            parameters, self.ENDS_LAYER, context
+        )
 
-        intermediates_layer = self.parameterAsVectorLayer(
+        self.intermediates_layer = self.parameterAsVectorLayer(
             parameters, self.INTERMEDIATES_LAYER, context
         )
 
-        batch_param_layer = self.parameterAsVectorLayer(
-            parameters, self.BATCH_PARAMETERS_LAYER, context
-        )
-
-        id_start_field = self.parameterAsString(
+        self.id_start_field = self.parameterAsString(
             parameters, self.STARTS_LAYER_ID_FIELD, context
         )
-        id_end_field = self.parameterAsString(
+        self.id_end_field = self.parameterAsString(
             parameters, self.ENDS_LAYER_ID_FIELD, context
         )
-        if intermediates_layer is not None:
-            id_intermediate_field = self.parameterAsString(
+        if self.intermediates_layer is not None:
+            self.id_intermediate_field = self.parameterAsString(
                 parameters, self.INTERMEDIATES_LAYER_ID_FIELD, context
             )
-            if not id_intermediate_field:
-                raise QgsProcessingException(
+            if not self.id_intermediate_field:
+                feedback.reportError(
                     self.tr(
                         "Champ pour identifiant des étapes dans la couche non définie."
                     )
                 )
+                return False
 
-        param_id_start_field = self.parameterAsString(
-            parameters, self.ID_START_FIELD, context
-        )
+        self.output_crs = self.parameterAsCrs(parameters, self.CRS, context)
 
-        param_id_end_field = self.parameterAsString(
-            parameters, self.ID_END_FIELD, context
+        if self.output_crs is None:
+            self.output_crs = self.starts_layer.crs()
+
+        # All points for itinerary compute must be defined in project CRS
+        # QgsProcessingParameterPoint always use project CRS
+        self.start_transform = QgsCoordinateTransform(
+            self.starts_layer.crs(),
+            context.project().crs(),
+            context.transformContext(),
         )
-        param_id_intermediates_field = self.parameterAsString(
-            parameters, self.ID_INTERMEDIATES_FIELD, context
-        )
-        param_ressource_field = self.parameterAsString(
-            parameters, self.RESSOURCE_FIELD, context
-        )
-        param_profil_field = self.parameterAsString(
-            parameters, self.PROFIL_FIELD, context
-        )
-        param_optimization_field = self.parameterAsString(
-            parameters, self.OPTIMIZATION_FIELD, context
-        )
-        param_additionnal_url_param_field = self.parameterAsString(
-            parameters, self.ADDITIONAL_URL_PARAM_FIELD, context
+        self.end_transform = QgsCoordinateTransform(
+            self.ends_layer.crs(),
+            context.project().crs(),
+            context.transformContext(),
         )
 
-        if self.CRS in parameters:
-            output_crs = self.parameterAsCrs(parameters, self.CRS, context)
-        else:
-            output_crs = starts_layer.crs()
-
-        output_fields = ItineraryProcessing.get_output_fields()
-        for f in batch_param_layer.fields():
-            field = QgsField(f)
-            field_name = field.name()
-            if field_name == "fid":
-                field.setName("fid_input")
-            output_fields.append(field)
-
-        # Get sink for output feature
-        (sink_itinerary, sink_itinerary_id) = self.parameterAsSink(
-            parameters,
-            self.OUTPUT,
-            context,
-            output_fields,
-            Qgis.WkbType.LineStringZ,
-            output_crs,
+        self.result_transform = QgsCoordinateTransform(
+            context.project().crs(),
+            self.output_crs,
+            context.transformContext(),
         )
 
         algo_str = (
             f"gpf_isochrone_isodistance_itineraire:{ItineraryProcessing().name()}"
         )
-        alg = QgsApplication.processingRegistry().algorithmById(algo_str)
+        self.alg = QgsApplication.processingRegistry().algorithmById(algo_str)
 
-        # All points for itinerary compute must be defined in project CRS
-        # QgsProcessingParameterPoint always use project CRS
-        start_transform = QgsCoordinateTransform(
-            starts_layer.crs(),
-            context.project().crs(),
-            context.transformContext(),
+        return True
+
+    def processFeature(
+        self,
+        feat: QgsFeature,
+        context: QgsProcessingContext,
+        feedback: Optional[QgsProcessingFeedback],
+    ) -> List[QgsFeature]:
+        """Processes an individual input feature from the source
+
+        :param feature: feature to process
+        :type feature: QgsFeature
+        :param context: processing context
+        :type context: QgsProcessingContext
+        :param feedback: processing feedback
+        :type feedback: Optional[QgsProcessingFeedback]
+        :return: list of created QgsFeature
+        :rtype: List[QgsFeature]
+        """
+        id_start = feat[self.param_id_start_field]
+        id_end = feat[self.param_id_end_field]
+        id_resource = feat[self.param_ressource_field]
+        profile = feat[self.param_profil_field]
+        optimization = feat[self.param_optimization_field]
+
+        feedback.pushInfo(
+            self.tr(
+                "Préparation calcul itinéraire pour id_start {} id_end {} id_resource {} profile {} optimization {}"
+            ).format(id_start, id_end, id_resource, profile, optimization)
         )
-        end_transform = QgsCoordinateTransform(
-            ends_layer.crs(),
-            context.project().crs(),
-            context.transformContext(),
-        )
 
-        result_transform = QgsCoordinateTransform(
-            context.project().crs(),
-            output_crs,
-            context.transformContext(),
-        )
+        start_feature = [
+            f
+            for f in self.starts_layer.getFeatures(f"{self.id_start_field}={id_start}")
+        ]
+        if len(start_feature) != 0:
+            start = start_feature[0].geometry().asPoint()
+            start = self.start_transform.transform(start)
+        else:
+            feedback.pushWarning(
+                self.tr("Identifiant {} non trouvé dans la couche de départs").format(
+                    id_start
+                )
+            )
+            return []
 
-        for feat in batch_param_layer.getFeatures():
-            if feedback.isCanceled():
-                break
-            id_start = feat[param_id_start_field]
-            id_end = feat[param_id_end_field]
-            id_resource = feat[param_ressource_field]
-            profile = feat[param_profil_field]
-            optimization = feat[param_optimization_field]
+        end_feature = [
+            f for f in self.ends_layer.getFeatures(f"{self.id_end_field}={id_end}")
+        ]
+        if len(end_feature) != 0:
+            end = end_feature[0].geometry().asPoint()
+            end = self.end_transform.transform(end)
+        else:
+            feedback.pushWarning(
+                self.tr("Identifiant {} non trouvé dans la couche d'arrivées").format(
+                    id_start
+                )
+            )
+            return []
 
-            feedback.pushInfo(
-                self.tr(
-                    "Préparation calcul itinéraire pour id_start {} id_end {} id_resource {} profile {} optimization {}"
-                ).format(id_start, id_end, id_resource, profile, optimization)
+        params = {
+            ItineraryProcessing.URL_SERVICE: self.url_service,
+            ItineraryProcessing.ID_RESOURCE: id_resource,
+            ItineraryProcessing.START: start,
+            ItineraryProcessing.END: end,
+            ItineraryProcessing.PROFILE: profile,
+            ItineraryProcessing.OPTIMIZATION: optimization,
+            ItineraryProcessing.OUTPUT: "TEMPORARY_OUTPUT",
+        }
+
+        if self.param_additionnal_url_param_field in feat.attributeMap():
+            additional_url_param = feat[self.param_additionnal_url_param_field]
+            params[ItineraryProcessing.ADDITIONAL_URL_PARAM] = additional_url_param
+
+        if (
+            self.intermediates_layer is not None
+            and self.param_id_intermediates_field in feat.attributeMap()
+        ):
+            id_intermediates = feat[self.param_id_intermediates_field]
+
+            if isinstance(id_intermediates, str):
+                if id_intermediates:
+                    id_intermediates = id_intermediates.split(",")
+                else:
+                    id_intermediates = []
+
+            if not isinstance(id_intermediates, list):
+                id_intermediates = [id_intermediates]
+
+            current_intermediates_layer = QgsVectorLayer(
+                f"Point?crs={self.intermediates_layer.crs()}", "intermediates", "memory"
+            )
+            current_intermediates_layer.startEditing()
+
+            feedback.pushDebugInfo(
+                self.tr("Liste des identifiants d'étapes {}").format(id_intermediates)
             )
 
-            start_feature = [
-                f for f in starts_layer.getFeatures(f"{id_start_field}={id_start}")
-            ]
-            if len(start_feature) != 0:
-                start = start_feature[0].geometry().asPoint()
-                start = start_transform.transform(start)
-            else:
-                feedback.pushWarning(
-                    self.tr(
-                        "Identifiant {} non trouvé dans la couche de départs"
-                    ).format(id_start)
-                )
-                continue
+            for id_ in id_intermediates:
+                request_filter = f"{self.id_intermediate_field} = {id_}"
 
-            end_feature = [
-                f for f in ends_layer.getFeatures(f"{id_end_field}={id_end}")
-            ]
-            if len(end_feature) != 0:
-                end = end_feature[0].geometry().asPoint()
-                end = end_transform.transform(end)
-            else:
-                feedback.pushWarning(
-                    self.tr(
-                        "Identifiant {} non trouvé dans la couche d'arrivées"
-                    ).format(id_start)
-                )
-                continue
-
-            params = {
-                ItineraryProcessing.URL_SERVICE: url_service,
-                ItineraryProcessing.ID_RESOURCE: id_resource,
-                ItineraryProcessing.START: start,
-                ItineraryProcessing.END: end,
-                ItineraryProcessing.PROFILE: profile,
-                ItineraryProcessing.OPTIMIZATION: optimization,
-                ItineraryProcessing.OUTPUT: "TEMPORARY_OUTPUT",
-            }
-
-            if param_additionnal_url_param_field in feat.attributeMap():
-                additional_url_param = feat[param_additionnal_url_param_field]
-                params[ItineraryProcessing.ADDITIONAL_URL_PARAM] = additional_url_param
-
-            if (
-                intermediates_layer is not None
-                and param_id_intermediates_field in feat.attributeMap()
-            ):
-                id_intermediates = feat[param_id_intermediates_field]
-
-                if isinstance(id_intermediates, str):
-                    if id_intermediates:
-                        id_intermediates = id_intermediates.split(",")
-                    else:
-                        id_intermediates = []
-
-                if not isinstance(id_intermediates, list):
-                    id_intermediates = [id_intermediates]
-
-                current_intermediates_layer = QgsVectorLayer(
-                    f"Point?crs={intermediates_layer.crs()}", "intermediates", "memory"
-                )
-                current_intermediates_layer.startEditing()
-
-                feedback.pushDebugInfo(
-                    self.tr("Liste des identifiants d'étapes {}").format(
-                        id_intermediates
+                intermediate_features = [
+                    f for f in self.intermediates_layer.getFeatures(request_filter)
+                ]
+                if len(intermediate_features) == 0:
+                    feedback.pushWarning(
+                        self.tr(
+                            "Identifiant {} non trouvé dans la couche des étapes"
+                        ).format(id_)
                     )
-                )
+                for f in intermediate_features:
+                    point = QgsFeature()
+                    point.setGeometry(f.geometry())
+                    current_intermediates_layer.addFeature(point)
+            current_intermediates_layer.commitChanges()
+            params[ItineraryProcessing.INTERMEDIATES] = current_intermediates_layer
 
-                for id_ in id_intermediates:
-                    request_filter = f"{id_intermediate_field} = {id_}"
+        results, successful = self.alg.run(params, context, feedback)
+        if successful:
+            res = results[ItineraryProcessing.OUTPUT]
+            res_layer = context.getMapLayer(res)
 
-                    intermediate_features = [
-                        f for f in intermediates_layer.getFeatures(request_filter)
-                    ]
-                    if len(intermediate_features) == 0:
-                        feedback.pushWarning(
-                            self.tr(
-                                "Identifiant {} non trouvé dans la couche des étapes"
-                            ).format(id_)
-                        )
-                    for f in intermediate_features:
-                        point = QgsFeature()
-                        point.setGeometry(f.geometry())
-                        current_intermediates_layer.addFeature(point)
-                current_intermediates_layer.commitChanges()
-                params[ItineraryProcessing.INTERMEDIATES] = current_intermediates_layer
+            output_features = []
+            for f in res_layer.getFeatures():
+                new_feature = QgsFeature()
+                new_feature.setFields(self.outputFields(feat.fields()))
+                geom = f.geometry()
+                geom.transform(self.result_transform)
+                new_feature.setGeometry(geom)
 
-            results, successful = alg.run(params, context, feedback)
-            if successful:
-                res = results[ItineraryProcessing.OUTPUT]
-                res_layer = context.getMapLayer(res)
-                for f in res_layer.getFeatures():
-                    new_feature = QgsFeature()
-                    new_feature.setFields(output_fields)
-                    geom = f.geometry()
-                    geom.transform(result_transform)
-                    new_feature.setGeometry(geom)
+                for field in res_layer.fields():
+                    new_feature[field.name()] = f[field.name()]
 
-                    for field in res_layer.fields():
-                        new_feature[field.name()] = f[field.name()]
+                for field in feat.fields():
+                    feat_field_name = field.name()
+                    if feat_field_name == "fid":
+                        feat_field_name = "fid_input"
+                    new_feature[feat_field_name] = feat[field.name()]
+                output_features.append(new_feature)
+            return output_features
+        else:
+            return []
 
-                    for field in batch_param_layer.fields():
-                        feat_field_name = field.name()
-                        if feat_field_name == "fid":
-                            feat_field_name = "fid_input"
-                        new_feature[feat_field_name] = feat[field.name()]
-                    sink_itinerary.addFeature(new_feature)
+    def outputWkbType(self, _: Qgis.WkbType) -> Qgis.WkbType:
+        """Maps the input WKB geometry type (inputWkbType) to the corresponding output WKB type generated by the algorithm.
 
-        return {self.OUTPUT: sink_itinerary_id}
+        :param _: input WkbType (not used)
+        :type _: Qgis.WkbType
+        :return: output WkbType (alway Qgis.WkbType.LineString)
+        :rtype: Qgis.WkbType
+        """
+        return Qgis.WkbType.LineString
+
+    def outputFields(self, inputFields: QgsFields) -> QgsFields:
+        """Maps the input source fields (inputFields) to corresponding output fields generated by the algorithm.
+
+        :param inputFields: input fields
+        :type inputFields: QgsFields
+        :return: output fields
+        :rtype: QgsFields
+        """
+
+        output_fields = ItineraryProcessing.get_output_fields()
+        for f in inputFields:
+            field = QgsField(f)
+            field_name = field.name()
+            if field_name == "fid":
+                field.setName("fid_input")
+            output_fields.append(field)
+        return output_fields
+
+    def outputCrs(
+        self, _: QgsCoordinateReferenceSystem
+    ) -> QgsCoordinateReferenceSystem:
+        """Maps the input source coordinate reference system (inputCrs) to a corresponding output CRS generated by the algorithm.
+
+        :param inputCrs: input crs
+        :type inputCrs: QgsCoordinateReferenceSystem
+        :return: output crs (defined in parameter or from start layer)
+        :rtype: QgsCoordinateReferenceSystem
+        """
+        return self.output_crs
+
+    def outputName(self) -> str:
+        """Returns the translated, user visible name for any layers created by this algorithm.
+
+        :return: _description_
+        :rtype: str
+        """
+        return self.tr("Itinéraires")
+
+    def inputLayerTypes(self) -> List[int]:
+        """Returns the valid input layer types for the source layer for this algorithm.
+        Only point vector are supported
+
+        :return: list of supported input layer type
+        :rtype: List[int]
+        """
+        return [Qgis.ProcessingSourceType.Vector]
