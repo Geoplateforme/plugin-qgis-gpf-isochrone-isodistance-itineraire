@@ -37,22 +37,23 @@ from gpf_isochrone_isodistance_itineraire.toolbelt import PlgOptionsManager
 class BatchItineraryAlgorithm(QgsProcessingFeatureBasedAlgorithm):
     URL_SERVICE = "URL_SERVICE"
 
-    STARTS_LAYER = "STARTS_LAYER"
-    STARTS_LAYER_ID_FIELD = "STARTS_LAYER_ID_FIELD"
-    ENDS_LAYER = "ENDS_LAYER"
-    ENDS_LAYER_ID_FIELD = "ENDS_LAYER_ID_FIELD"
-    INTERMEDIATES_LAYER = "INTERMEDIATES_LAYER"
-    INTERMEDIATES_LAYER_ID_FIELD = "INTERMEDIATES_LAYER_ID_FIELD"
-
     ID_START_FIELD = "ID_START_FIELD"
     ID_END_FIELD = "ID_END_FIELD"
     ID_INTERMEDIATES_FIELD = "ID_INTERMEDIATES_FIELD"
-
     RESSOURCE_FIELD = "RESSOURCE_FIELD"
     PROFIL_FIELD = "PROFIL_FIELD"
     OPTIMIZATION_FIELD = "OPTIMIZATION_FIELD"
-
     ADDITIONAL_URL_PARAM_FIELD = "ADDITIONAL_URL_PARAM_FIELD"
+
+    STARTS_LAYER = "STARTS_LAYER"
+    STARTS_LAYER_ID_FIELD = "STARTS_LAYER_ID_FIELD"
+
+    ENDS_LAYER = "ENDS_LAYER"
+    ENDS_LAYER_ID_FIELD = "ENDS_LAYER_ID_FIELD"
+
+    INTERMEDIATES_LAYER = "INTERMEDIATES_LAYER"
+    INTERMEDIATES_LAYER_ID_FIELD = "INTERMEDIATES_LAYER_ID_FIELD"
+
     CRS = "CRS"
 
     def __init__(self) -> None:
@@ -353,6 +354,71 @@ class BatchItineraryAlgorithm(QgsProcessingFeatureBasedAlgorithm):
 
         return True
 
+    def _define_id_intermediates(self, id_intermediates: Any) -> List[Any]:
+        """Define id_intermediates list from feature field
+
+        :param id_intermediates: value from feature
+        :type id_intermediates: Any
+        :return: list of id intermediates
+        :rtype: List[Any]
+        """
+        # Convert str to list of values
+        if isinstance(id_intermediates, str):
+            if id_intermediates:
+                result = id_intermediates.split(",")
+            else:
+                result = []
+        # If not a list, create one with single value
+        elif not isinstance(id_intermediates, list):
+            result = [id_intermediates]
+        # This is already a list, keep value
+        else:
+            result = id_intermediates
+
+        return result
+
+    def _create_intermediates_layer(
+        self, id_intermediates: List[Any], feedback: QgsProcessingFeedback
+    ) -> QgsVectorLayer:
+        """Create intermediates layer from a list of id
+
+        :param id_intermediates: list of id
+        :type id_intermediates: List[Any]
+        :param feedback: processing feedback
+        :type feedback: QgsProcessingFeedback
+        :return: layer with point from steps layer
+        :rtype: QgsVectorLayer
+        """
+
+        intermediates_layer = QgsVectorLayer(
+            f"Point?crs={self.intermediates_layer.crs()}", "intermediates", "memory"
+        )
+        intermediates_layer.startEditing()
+
+        feedback.pushDebugInfo(
+            self.tr("Liste des identifiants d'étapes {}").format(id_intermediates)
+        )
+
+        for id_ in id_intermediates:
+            request_filter = f"{self.id_intermediate_field} = {id_}"
+
+            intermediate_features = [
+                f for f in self.intermediates_layer.getFeatures(request_filter)
+            ]
+            if len(intermediate_features) == 0:
+                feedback.pushWarning(
+                    self.tr(
+                        "Identifiant {} non trouvé dans la couche des étapes"
+                    ).format(id_)
+                )
+            for f in intermediate_features:
+                point = QgsFeature()
+                point.setGeometry(f.geometry())
+                intermediates_layer.addFeature(point)
+        intermediates_layer.commitChanges()
+
+        return intermediates_layer
+
     def processFeature(
         self,
         feat: QgsFeature,
@@ -429,44 +495,12 @@ class BatchItineraryAlgorithm(QgsProcessingFeatureBasedAlgorithm):
             self.intermediates_layer is not None
             and self.param_id_intermediates_field in feat.attributeMap()
         ):
-            id_intermediates = feat[self.param_id_intermediates_field]
-
-            if isinstance(id_intermediates, str):
-                if id_intermediates:
-                    id_intermediates = id_intermediates.split(",")
-                else:
-                    id_intermediates = []
-
-            if not isinstance(id_intermediates, list):
-                id_intermediates = [id_intermediates]
-
-            current_intermediates_layer = QgsVectorLayer(
-                f"Point?crs={self.intermediates_layer.crs()}", "intermediates", "memory"
+            id_intermediates = self._define_id_intermediates(
+                feat[self.param_id_intermediates_field]
             )
-            current_intermediates_layer.startEditing()
-
-            feedback.pushDebugInfo(
-                self.tr("Liste des identifiants d'étapes {}").format(id_intermediates)
+            params[ItineraryProcessing.INTERMEDIATES] = (
+                self._create_intermediates_layer(id_intermediates, feedback)
             )
-
-            for id_ in id_intermediates:
-                request_filter = f"{self.id_intermediate_field} = {id_}"
-
-                intermediate_features = [
-                    f for f in self.intermediates_layer.getFeatures(request_filter)
-                ]
-                if len(intermediate_features) == 0:
-                    feedback.pushWarning(
-                        self.tr(
-                            "Identifiant {} non trouvé dans la couche des étapes"
-                        ).format(id_)
-                    )
-                for f in intermediate_features:
-                    point = QgsFeature()
-                    point.setGeometry(f.geometry())
-                    current_intermediates_layer.addFeature(point)
-            current_intermediates_layer.commitChanges()
-            params[ItineraryProcessing.INTERMEDIATES] = current_intermediates_layer
 
         results, successful = self.alg.run(params, context, feedback)
         if successful:
