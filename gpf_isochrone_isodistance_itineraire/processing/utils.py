@@ -32,7 +32,7 @@ def get_user_manual_url(processing_name: str) -> str:
     """
     # Need to avoid use of _ in labels for Myst. Replacing with -
     fixed_processing_name = processing_name.replace("_", "-")
-    return f"{__uri_homepage__}/usage/{get_locale_prefix()}processings.html#{fixed_processing_name}"
+    return f"{__uri_homepage__}usage/{get_locale_prefix()}processings.html#{fixed_processing_name}"
 
 
 def get_short_string(processing_name: str, default_help_str: str) -> str:
