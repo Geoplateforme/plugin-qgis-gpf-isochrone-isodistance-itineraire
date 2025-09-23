@@ -11,6 +11,13 @@ Pour afficher tous les traitements QGIS : `Traitements > Boîte à outils`
 ```{include} ../../gpf_isochrone_isodistance_itineraire/resources/help/itinerary.md
 ```
 
+(itinerary-batch)=
+
+## Calcul d'itinéraire en lot
+
+```{include} ../../gpf_isochrone_isodistance_itineraire/resources/help/itinerary_batch.md
+```
+
 (isochrone-processing)=
 
 ## Calcul d'isochrones en lot

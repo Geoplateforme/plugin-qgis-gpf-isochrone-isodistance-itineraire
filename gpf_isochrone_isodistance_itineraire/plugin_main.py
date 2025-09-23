@@ -92,6 +92,16 @@ class GpfIsochroneIsodistanceItinerairePlugin:
         self.options_factory = PlgOptionsFactory()
         self.iface.registerOptionsWidgetFactory(self.options_factory)
 
+        # -- Processing
+        self.provider = PluginGpfIsochroneIsodistanceItineraireProvider()
+        QgsApplication.processingRegistry().addProvider(self.provider)
+
+        # Need to init widget after initializationCompleted because we are defining default crs in IsoServiceWidget
+        # self.iface.initializationCompleted.connect(self._init_widget)
+        # Better to init widget in initGui because the signal may not be emitted when we install the plugin after QGIS start
+        # User will have to restart QGIS to get the widgets
+        self._init_widget()
+
         # -- Actions
         self.action_help = QAction(
             QgsApplication.getThemeIcon("mActionHelpContents.svg"),
@@ -133,16 +143,6 @@ class GpfIsochroneIsodistanceItinerairePlugin:
         self.iface.pluginHelpMenu().addAction(
             self.action_help_plugin_menu_documentation
         )
-
-        # -- Processing
-        self.provider = PluginGpfIsochroneIsodistanceItineraireProvider()
-        QgsApplication.processingRegistry().addProvider(self.provider)
-
-        # Need to init widget after initializationCompleted because we are defining default crs in IsoServiceWidget
-        # self.iface.initializationCompleted.connect(self._init_widget)
-        # Better to init widget in initGui because the signal may not be emitted when we install the plugin after QGIS start
-        # User will have to restart QGIS to get the widgets
-        self._init_widget()
 
     def _init_widget(self) -> None:
         """Init widget for plugin after QGIS initialization"""
@@ -298,6 +298,12 @@ class GpfIsochroneIsodistanceItinerairePlugin:
         itinerary_menu_processing.addAction(
             create_processing_action(
                 "gpf_isochrone_isodistance_itineraire:itinerary",
+                itinerary_menu_processing,
+            )
+        )
+        itinerary_menu_processing.addAction(
+            create_processing_action(
+                "gpf_isochrone_isodistance_itineraire:itinerary_batch",
                 itinerary_menu_processing,
             )
         )

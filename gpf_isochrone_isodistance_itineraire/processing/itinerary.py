@@ -511,7 +511,7 @@ class ItineraryProcessing(QgsProcessingAlgorithm):
 
         # Add intermediates
         intermediates_str = ""
-        if intermediates_layer:
+        if intermediates_layer is not None:
             intermediates_crs = intermediates_layer.crs()
 
             intermediates_str_list = []

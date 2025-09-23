@@ -24,6 +24,9 @@ from gpf_isochrone_isodistance_itineraire.processing.isodistance import (
 from gpf_isochrone_isodistance_itineraire.processing.itinerary import (
     ItineraryProcessing,
 )
+from gpf_isochrone_isodistance_itineraire.processing.itinerary_batch import (
+    BatchItineraryAlgorithm,
+)
 
 # ############################################################################
 # ########## Classes ###############
@@ -38,6 +41,7 @@ class PluginGpfIsochroneIsodistanceItineraireProvider(QgsProcessingProvider):
         self.addAlgorithm(IsochroneProcessing())
         self.addAlgorithm(IsodistanceProcessing())
         self.addAlgorithm(ItineraryProcessing())
+        self.addAlgorithm(BatchItineraryAlgorithm())
 
     def id(self) -> str:
         """Unique provider id, used for identifying it. This string should be unique, \

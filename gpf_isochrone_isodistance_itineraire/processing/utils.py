@@ -1,4 +1,4 @@
-import os
+# standard
 from pathlib import Path
 from typing import Optional
 
@@ -32,7 +32,7 @@ def get_user_manual_url(processing_name: str) -> str:
     """
     # Need to avoid use of _ in labels for Myst. Replacing with -
     fixed_processing_name = processing_name.replace("_", "-")
-    return f"{__uri_homepage__}/usage/{get_locale_prefix()}processings.html#{fixed_processing_name}"
+    return f"{__uri_homepage__}usage/{get_locale_prefix()}processings.html#{fixed_processing_name}"
 
 
 def get_short_string(processing_name: str, default_help_str: str) -> str:
@@ -47,18 +47,20 @@ def get_short_string(processing_name: str, default_help_str: str) -> str:
     :return: processing short string help
     :rtype: str
     """
-    current_dir = Path(os.path.dirname(os.path.realpath(__file__)))
-    help_md = (
-        current_dir
-        / ".."
-        / "resources"
-        / "help"
-        / f"{get_locale_prefix()}{processing_name}.md"
+    current_dir = Path(__file__).parent.resolve()
+    help_md = current_dir.joinpath(
+        "..", "resources", "help", f"{get_locale_prefix()}{processing_name}.md"
     )
     help_str = default_help_str
-    if os.path.exists(help_md):
-        with open(help_md) as f:
-            help_str = "".join(f.readlines())
+    if help_md.exists():
+        with help_md.open(mode="r", encoding="UTF-8") as help_file:
+            help_str = "".join(help_file.readlines())
+    else:
+        PlgLogger().log(
+            f"Help not found for '{processing_name}', fallback to default value.",
+            log_level=Qgis.MessageLevel.Warning,
+            push=False,
+        )
     return help_str
 
 
