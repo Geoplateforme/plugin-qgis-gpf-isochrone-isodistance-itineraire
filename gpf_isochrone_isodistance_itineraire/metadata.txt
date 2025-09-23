@@ -8,7 +8,7 @@ icon=resources/images/logo_isoservices.svg
 tags=IGN,Géoplateforme,geoplateforme,itinéraire,isochrone,isodistance,routing,API,Valhalla,pgRouting,OSRM
 
 # credits and contact
-author=oslandia
+author=Oslandia, IGN France
 email=qgis@oslandia.com
 homepage=https://geoplateforme.github.io/plugin-qgis-gpf-isochrone-isodistance-itineraire/
 repository=https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/
@@ -18,7 +18,7 @@ tracker=https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-i
 deprecated=False
 experimental=True
 qgisMinimumVersion=3.40.4
-qgisMaximumVersion=3.99.0
+qgisMaximumVersion=4.10.20
 supportsQt6=True
 
 # versioning
