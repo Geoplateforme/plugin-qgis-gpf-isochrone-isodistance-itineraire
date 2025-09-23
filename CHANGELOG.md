@@ -16,42 +16,31 @@ Unreleased
 
 -->
 
+## 0.5.0 - 2025-09-23
+
+* fix(qt6): QMenu need a parent in Qt6 for correct use by @jmkerloch in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/52>
+* feat(crs): always use EPSG:4326 for geoplateforme request by @jmkerloch in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/53>
+* Feature: add processing to batch itinerary resolution by @jmkerloch in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/54>
+
 ## 0.4.0 - 2025-09-05
 
-These release contains fixes for Qt6 use and documentation initialization.
-
-### Bugs fixes 🐛
+This release contains fixes for Qt6 use and documentation initialization.
 
 * fix(ui): disable connect for marker update when updating min/max for spinbox by @jmkerloch in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/40>
 * fix(qt6): no url param for QNetworkRequest by @jmkerloch in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/42>
 * feat(processing): check if feature geometry is null by @jmkerloch in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/46>
-
-### Features and enhancements 🎉
-
 * feat(ui): update icon to distinguish services by @jmkerloch in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/41>
 * feat(ui): add action for widget and processing in menu by @jmkerloch in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/44>
 * doc(processing): init documentation for processings by @jmkerloch in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/43>
 * feat(isoservice): keep fields from input layer in result by @jmkerloch in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/45>
 * feat(ui): add tooltip for resource selection by @jmkerloch in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/47>
-
-### Tooling 🔧
-
 * fix(ci): always run test and lint to be able to merge PR by @jmkerloch in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/39>
 * build(deps): bump dawidd6/action-download-artifact from 9 to 11 by @dependabot[bot] in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/29>
 * build(deps): bump actions/download-artifact from 4 to 5 by @dependabot[bot] in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/48>
 * build(deps): bump actions/checkout from 4 to 5 by @dependabot[bot] in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/49>
 * build(deps): bump actions/upload-pages-artifact from 3 to 4 by @dependabot[bot] in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/50>
-
-### Other Changes
-
 * Update metadata.txt by @IGNF-Xavier in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/35>
 * [pre-commit.ci] pre-commit autoupdate by @pre-commit-ci[bot] in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/30>
-
-## New Contributors
-
-* @IGNF-Xavier made their first contribution in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/35>
-* @dependabot[bot] made their first contribution in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/29>
-* @pre-commit-ci[bot] made their first contribution in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/30>
 
 ## 0.3.0 - 2025-05-28
 
