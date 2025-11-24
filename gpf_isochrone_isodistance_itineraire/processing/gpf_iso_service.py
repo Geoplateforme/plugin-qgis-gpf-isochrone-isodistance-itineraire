@@ -24,7 +24,7 @@ from qgis.core import (
     QgsProcessingParameterExpression,
     QgsProcessingParameterString,
 )
-from qgis.PyQt.QtCore import QCoreApplication, QUrl, QVariant
+from qgis.PyQt.QtCore import QCoreApplication, QMetaType, QUrl, QVariant
 from qgis.PyQt.QtNetwork import QNetworkRequest
 
 # project
@@ -703,7 +703,10 @@ class GpfIsoServiceProcessing(QgsProcessingFeatureBasedAlgorithm):
             f.setAttribute("additional_url_param", additional_url_param)
 
             for field in feature.fields():
-                f[field.name()] = feature[field.name()]
+                if field.name() == "fid":
+                    f["fid_input"] = feature[field.name()]
+                else:
+                    f[field.name()] = feature[field.name()]
 
             return [f]
         else:
@@ -730,16 +733,22 @@ class GpfIsoServiceProcessing(QgsProcessingFeatureBasedAlgorithm):
         :rtype: QgsFields
         """
         result = QgsFields()
-        result.append(QgsField("x"))
-        result.append(QgsField("y"))
-        result.append(QgsField("request"))
-        result.append(QgsField("id_resource"))
-        result.append(QgsField("profile"))
-        result.append(QgsField("direction"))
-        result.append(QgsField(self.get_max_cost_attribute_string()))
-        result.append(QgsField("additional_url_param"))
+        result.append(QgsField("x", type=QMetaType.Type.Double))
+        result.append(QgsField("y", type=QMetaType.Type.Double))
+        result.append(QgsField("request", type=QMetaType.Type.QString))
+        result.append(QgsField("id_resource", type=QMetaType.Type.QString))
+        result.append(QgsField("profile", type=QMetaType.Type.QString))
+        result.append(QgsField("direction", type=QMetaType.Type.QString))
+        result.append(
+            QgsField(self.get_max_cost_attribute_string(), type=QMetaType.Type.QString)
+        )
+        result.append(QgsField("additional_url_param", type=QMetaType.Type.QString))
 
-        for field in inputFields:
+        for f in inputFields:
+            field = QgsField(f)
+            field_name = field.name()
+            if field_name == "fid":
+                field.setName("fid_input")
             result.append(field)
 
         return result
