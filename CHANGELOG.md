@@ -16,6 +16,12 @@ Unreleased
 
 -->
 
+## 0.5.1 - 2025-11-27
+
+* fix(isoservice): avoid error when using gpkg for output in processing by @jmkerloch in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/65>
+* build(deps): bump actions/labeler from 5 to 6 by @dependabot[bot] in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/58>
+* Packaging: declare plugin compatible qgis4 by @Guts in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/56>
+
 ## 0.5.0 - 2025-09-23
 
 * fix(qt6): QMenu need a parent in Qt6 for correct use by @jmkerloch in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/52>
