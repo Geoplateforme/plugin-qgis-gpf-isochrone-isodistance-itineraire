@@ -16,6 +16,15 @@ Unreleased
 
 -->
 
+## 1.0.0 - 2025-11-27
+
+This version is mainly here to publicize the first stable version of the plugin.
+
+
+* build(deps): bump actions/setup-python from 5 to 6 by @dependabot[bot] in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/57>
+* build(deps): bump actions/download-artifact from 5 to 6 by @dependabot[bot] in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/60>
+* build(deps): bump actions/upload-artifact from 4 to 5 by @dependabot[bot] in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/61>
+
 ## 0.5.1 - 2025-11-27
 
 * fix(isoservice): avoid error when using gpkg for output in processing by @jmkerloch in <https://github.com/Geoplateforme/plugin-qgis-gpf-isochrone-isodistance-itineraire/pull/65>
