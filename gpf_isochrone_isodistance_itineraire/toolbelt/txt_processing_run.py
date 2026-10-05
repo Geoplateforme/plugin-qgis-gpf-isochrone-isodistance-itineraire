@@ -71,6 +71,6 @@ class ProcessingRunTextEdit(QTextEdit):
         else:
             QMessageBox.critical(
                 self,
-                self.tr("Can't run {0}".format(alg.name())),
-                self.tr("Invalid parameters : {0}.".format(error)),
+                self.tr(f"Can't run {alg.name()}"),
+                self.tr(f"Invalid parameters : {error}."),
             )

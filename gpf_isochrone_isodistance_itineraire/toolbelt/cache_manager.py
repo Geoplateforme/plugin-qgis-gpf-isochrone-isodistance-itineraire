@@ -91,7 +91,7 @@ class CacheManager:
                 return bytea
             else:
                 file.close()
-                err_msg = self.tr("Can't open cache file: {}".format(cache_file))
+                err_msg = self.tr(f"Can't open cache file: {cache_file}")
                 self.log(
                     message=err_msg, log_level=Qgis.MessageLevel.Critical, push=True
                 )
@@ -112,7 +112,7 @@ class CacheManager:
             file.write(content)
             file.close()
         else:
-            err_msg = self.tr("Can't open cache file for write: {}".format(cache_file))
+            err_msg = self.tr(f"Can't open cache file for write: {cache_file}")
             self.log(message=err_msg, log_level=Qgis.MessageLevel.Critical, push=True)
 
     def ensure_cache_dir_exists(self) -> bool:
@@ -148,9 +148,7 @@ class CacheManager:
         if self.ensure_cache_dir_exists():
             shutil.rmtree(self.cache_dir)
             self.log(
-                message=self.tr(
-                    "Cache dir {} has been removed.".format(self.cache_dir)
-                ),
+                message=self.tr(f"Cache dir {self.cache_dir} has been removed."),
                 log_level=Qgis.MessageLevel.Info,
                 push=True,
             )
