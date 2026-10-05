@@ -232,9 +232,7 @@ class GpfIsoServiceProcessing(QgsProcessingFeatureBasedAlgorithm):
             if feedback:
                 feedback.reportError(
                     self.tr(
-                        "Service isochrone/isodistance indisponible pour l'url : {}".format(
-                            self._url_service
-                        )
+                        f"Service isochrone/isodistance indisponible pour l'url : {self._url_service}"
                     )
                 )
             return False
@@ -267,11 +265,7 @@ class GpfIsoServiceProcessing(QgsProcessingFeatureBasedAlgorithm):
         if id_resource not in get_available_resources(url_service):
             if feedback:
                 feedback.reportError(
-                    self.tr(
-                        "Le service ne contient pas la resource : {}".format(
-                            id_resource
-                        )
-                    )
+                    self.tr(f"Le service ne contient pas la resource : {id_resource}")
                 )
             return False
 
@@ -279,9 +273,7 @@ class GpfIsoServiceProcessing(QgsProcessingFeatureBasedAlgorithm):
             if feedback:
                 feedback.reportError(
                     self.tr(
-                        "Service isochrone/isodistance indisponible pour la resource : {}".format(
-                            id_resource
-                        )
+                        f"Service isochrone/isodistance indisponible pour la resource : {id_resource}"
                     )
                 )
             return False
@@ -316,9 +308,7 @@ class GpfIsoServiceProcessing(QgsProcessingFeatureBasedAlgorithm):
             if feedback:
                 feedback.reportError(
                     self.tr(
-                        "La resource {} ne contient pas le profil : {}".format(
-                            id_resource, profile
-                        )
+                        f"La resource {id_resource} ne contient pas le profil : {profile}"
                     )
                 )
             return False
@@ -351,9 +341,7 @@ class GpfIsoServiceProcessing(QgsProcessingFeatureBasedAlgorithm):
             if feedback:
                 feedback.reportError(
                     self.tr(
-                        "La resource {} ne contient pas la direction : {}".format(
-                            id_resource, direction
-                        )
+                        f"La resource {id_resource} ne contient pas la direction : {direction}"
                     )
                 )
             return False
@@ -386,9 +374,7 @@ class GpfIsoServiceProcessing(QgsProcessingFeatureBasedAlgorithm):
             if feedback:
                 feedback.reportError(
                     self.tr(
-                        "La resource {} ne contient pas le type de cout : {}".format(
-                            id_resource, cost_type
-                        )
+                        f"La resource {id_resource} ne contient pas le type de cout : {cost_type}"
                     )
                 )
             return False
@@ -430,9 +416,7 @@ class GpfIsoServiceProcessing(QgsProcessingFeatureBasedAlgorithm):
             if feedback:
                 feedback.pushWarning(
                     self.tr(
-                        "Impossible de définir la bounding box pour la ressource {}".format(
-                            id_resource
-                        )
+                        f"Impossible de définir la bounding box pour la ressource {id_resource}"
                     )
                 )
         else:
@@ -449,9 +433,7 @@ class GpfIsoServiceProcessing(QgsProcessingFeatureBasedAlgorithm):
                 if feedback:
                     feedback.reportError(
                         self.tr(
-                            "Point {} non contenu dans la bounding box de la ressource {} : {}".format(
-                                geom.asWkt(), id_resource, bbox
-                            )
+                            f"Point {geom.asWkt()} non contenu dans la bounding box de la ressource {id_resource} : {bbox}"
                         )
                     )
                 return False
@@ -511,9 +493,7 @@ class GpfIsoServiceProcessing(QgsProcessingFeatureBasedAlgorithm):
         if len(supported_crs) == 0:
             if feedback:
                 feedback.reportError(
-                    self.tr(
-                        "La resource ne supporte aucun CRS : {}".format(id_resource)
-                    )
+                    self.tr(f"La resource ne supporte aucun CRS : {id_resource}")
                 )
             return None
 
@@ -532,9 +512,7 @@ class GpfIsoServiceProcessing(QgsProcessingFeatureBasedAlgorithm):
             if feedback:
                 feedback.pushWarning(
                     self.tr(
-                        "Le CRS en entrée n'est pas compatible avec la ressource : {}. Utilisation du CRS {} pour le calcul".format(
-                            id_resource, request_crs.authid()
-                        )
+                        f"Le CRS en entrée n'est pas compatible avec la ressource : {id_resource}. Utilisation du CRS {request_crs.authid()} pour le calcul"
                     )
                 )
         return request_crs
@@ -562,9 +540,7 @@ class GpfIsoServiceProcessing(QgsProcessingFeatureBasedAlgorithm):
         if geometry.isNull():
             feedback.pushWarning(
                 self.tr(
-                    "La géométrie n'est pas définie pour la feature {}. Le calcul n'est pas effectué".format(
-                        feature.id(),
-                    )
+                    f"La géométrie n'est pas définie pour la feature {feature.id()}. Le calcul n'est pas effectué"
                 )
             )
             return []
@@ -673,9 +649,7 @@ class GpfIsoServiceProcessing(QgsProcessingFeatureBasedAlgorithm):
                         err_msg += f"API error message: {api_response_error['error']['message']}"
                 feedback.reportError(
                     self.tr(
-                        "Erreur lors de la requête pour calcul d'isochrone : {}".format(
-                            err_msg
-                        )
+                        f"Erreur lors de la requête pour calcul d'isochrone : {err_msg}"
                     )
                 )
             return []

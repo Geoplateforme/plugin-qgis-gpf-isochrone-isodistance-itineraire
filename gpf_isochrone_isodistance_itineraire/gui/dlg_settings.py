@@ -1,4 +1,4 @@
-#! python3  # noqa: E265
+#! python3
 
 """
 Plugin settings form integrated into QGIS 'Options' menu.
@@ -35,9 +35,7 @@ from gpf_isochrone_isodistance_itineraire.toolbelt.preferences import (
 # ########## Globals ###############
 # ##################################
 
-FORM_CLASS, _ = uic.loadUiType(
-    Path(__file__).parent / "{}.ui".format(Path(__file__).stem)
-)
+FORM_CLASS, _ = uic.loadUiType(Path(__file__).parent / f"{Path(__file__).stem}.ui")
 
 
 # ############################################################################
@@ -56,7 +54,7 @@ class ConfigOptionsPage(FORM_CLASS, QgsOptionsPageWidget):
 
         # load UI and set objectName
         self.setupUi(self)
-        self.setObjectName("mOptionsPage{}".format(__title__))
+        self.setObjectName(f"mOptionsPage{__title__}")
 
         report_context_message = quote(
             "> Reported from plugin settings\n\n"

@@ -1,4 +1,4 @@
-#! python3  # noqa: E265
+#! python3
 
 """
 Processing provider module.
@@ -70,7 +70,7 @@ class PluginGpfIsochroneIsodistanceItineraireProvider(QgsProcessingProvider):
         :return: provider long name
         :rtype: str
         """
-        return self.tr("{} - Tools".format(__title__))
+        return self.tr(f"{__title__} - Tools")
 
     def icon(self) -> QIcon:
         """QIcon used for your provider inside the Processing toolbox menu.

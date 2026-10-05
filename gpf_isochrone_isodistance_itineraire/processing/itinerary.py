@@ -189,11 +189,7 @@ class ItineraryProcessing(QgsProcessingAlgorithm):
         if id_resource not in get_available_resources(url_service):
             if feedback:
                 feedback.reportError(
-                    self.tr(
-                        "Le service ne contient pas la resource : {}".format(
-                            id_resource
-                        )
-                    )
+                    self.tr(f"Le service ne contient pas la resource : {id_resource}")
                 )
             return False
 
@@ -201,9 +197,7 @@ class ItineraryProcessing(QgsProcessingAlgorithm):
             if feedback:
                 feedback.reportError(
                     self.tr(
-                        "Service itinéraire indisponible pour la resource : {}".format(
-                            id_resource
-                        )
+                        f"Service itinéraire indisponible pour la resource : {id_resource}"
                     )
                 )
             return False
@@ -238,9 +232,7 @@ class ItineraryProcessing(QgsProcessingAlgorithm):
             if feedback:
                 feedback.reportError(
                     self.tr(
-                        "La resource {} ne contient pas le profil : {}".format(
-                            id_resource, profile
-                        )
+                        f"La resource {id_resource} ne contient pas le profil : {profile}"
                     )
                 )
             return False
@@ -282,9 +274,7 @@ class ItineraryProcessing(QgsProcessingAlgorithm):
             if feedback:
                 feedback.pushWarning(
                     self.tr(
-                        "Impossible de définir la bounding box pour la ressource {}".format(
-                            id_resource
-                        )
+                        f"Impossible de définir la bounding box pour la ressource {id_resource}"
                     )
                 )
         else:
@@ -301,9 +291,7 @@ class ItineraryProcessing(QgsProcessingAlgorithm):
                 if feedback:
                     feedback.reportError(
                         self.tr(
-                            "Point {} non contenu dans la bounding box de la ressource {} : {}".format(
-                                geom.asWkt(), id_resource, bbox
-                            )
+                            f"Point {geom.asWkt()} non contenu dans la bounding box de la ressource {id_resource} : {bbox}"
                         )
                     )
                 return False
@@ -336,9 +324,7 @@ class ItineraryProcessing(QgsProcessingAlgorithm):
             if feedback:
                 feedback.reportError(
                     self.tr(
-                        "La resource {} ne contient pas l'optimisation : {}".format(
-                            id_resource, optimization
-                        )
+                        f"La resource {id_resource} ne contient pas l'optimisation : {optimization}"
                     )
                 )
             return False
@@ -380,9 +366,7 @@ class ItineraryProcessing(QgsProcessingAlgorithm):
         if len(supported_crs) == 0:
             if feedback:
                 feedback.reportError(
-                    self.tr(
-                        "La resource ne supporte aucun CRS : {}".format(id_resource)
-                    )
+                    self.tr(f"La resource ne supporte aucun CRS : {id_resource}")
                 )
             return None
 
@@ -401,9 +385,7 @@ class ItineraryProcessing(QgsProcessingAlgorithm):
             if feedback:
                 feedback.pushWarning(
                     self.tr(
-                        "Le CRS en entrée n'est pas compatible avec la ressource : {}. Utilisation du CRS {} pour le calcul".format(
-                            id_resource, request_crs.authid()
-                        )
+                        f"Le CRS en entrée n'est pas compatible avec la ressource : {id_resource}. Utilisation du CRS {request_crs.authid()} pour le calcul"
                     )
                 )
         return request_crs
@@ -454,15 +436,11 @@ class ItineraryProcessing(QgsProcessingAlgorithm):
         # Check service for isochrone
         if not route_available_for_service(url_service):
             raise QgsProcessingException(
-                self.tr(
-                    "Service itineraire indisponible pour l'url : {}".format(
-                        url_service
-                    )
-                )
+                self.tr(f"Service itineraire indisponible pour l'url : {url_service}")
             )
         output_fields = ItineraryProcessing.get_output_fields()
         # Get sink for output feature
-        (sink_itinerary, sink_itinerary_id) = self.parameterAsSink(
+        sink_itinerary, sink_itinerary_id = self.parameterAsSink(
             parameters,
             self.OUTPUT,
             context,
@@ -475,9 +453,7 @@ class ItineraryProcessing(QgsProcessingAlgorithm):
         if not self._check_resource(id_resource, url_service, feedback):
             raise QgsProcessingException(
                 self.tr(
-                    "Service itineraire indisponible pour l'url : {} et la ressource {}".format(
-                        url_service, id_resource
-                    )
+                    f"Service itineraire indisponible pour l'url : {url_service} et la ressource {id_resource}"
                 )
             )
 
@@ -572,9 +548,7 @@ class ItineraryProcessing(QgsProcessingAlgorithm):
         if not self._check_profile(profile, id_resource, url_service, feedback):
             raise QgsProcessingException(
                 self.tr(
-                    "Profil {} non compatible avec la ressource {}".format(
-                        profile, id_resource
-                    )
+                    f"Profil {profile} non compatible avec la ressource {id_resource}"
                 )
             )
         request += f"&profile={profile}"
@@ -585,9 +559,7 @@ class ItineraryProcessing(QgsProcessingAlgorithm):
         ):
             raise QgsProcessingException(
                 self.tr(
-                    "Optimisation {} non compatible avec la ressource {}".format(
-                        optimization, id_resource
-                    )
+                    f"Optimisation {optimization} non compatible avec la ressource {id_resource}"
                 )
             )
         request += f"&optimization={optimization}"
@@ -625,9 +597,7 @@ class ItineraryProcessing(QgsProcessingAlgorithm):
 
                 raise QgsProcessingException(
                     self.tr(
-                        "Erreur lors de la requête pour calcul d'itinéraire : {}".format(
-                            err_msg
-                        )
+                        f"Erreur lors de la requête pour calcul d'itinéraire : {err_msg}"
                     )
                 )
 
